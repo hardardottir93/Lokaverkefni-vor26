@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { ProductCard } from "../features/products/components/ProductCard";
 import { getProducts } from "../features/products/api/productsApi";
 import type { Product } from "../features/products/model/product";
 
@@ -12,7 +13,6 @@ export function ProductsPage() {
     async function loadProducts() {
       try {
         const productsFromApi = await getProducts();
-
         setProducts(productsFromApi);
       } catch (error) {
         setErrorMessage(
@@ -27,28 +27,34 @@ export function ProductsPage() {
   }, []);
 
   if (isLoading) {
-    return <p>Loading products...</p>;
+    return <p className="p-6">Loading products...</p>;
   }
 
   if (errorMessage) {
-    return <p>Error: {errorMessage}</p>;
+    return <p className="p-6 text-red-600">Error: {errorMessage}</p>;
   }
 
   return (
-    <main>
-      <h1>Products</h1>
+    <main className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+          Netverslun
+        </p>
+        <h1 className="mt-2 text-3xl font-bold text-stone-950">Vörur</h1>
+        <p className="mt-2 max-w-2xl text-stone-600">
+          Skoðaðu úrval af garni, prjónum, uppskriftum og handavinnuvörum.
+        </p>
+      </div>
 
       {products.length === 0 ? (
-        <p>No products found.</p>
+        <p className="rounded-xl border border-stone-200 bg-stone-50 p-6 text-stone-600">
+          Engar vörur fundust.
+        </p>
       ) : (
-        <ul>
+        <ul className="grid list-none gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <li key={product.id}>
-              <h2>{product.name}</h2>
-              <p>{product.description}</p>
-              <p>{product.price} kr.</p>
-              <p>Category: {product.categories.name}</p>
-              <p>Stock: {product.stock}</p>
+              <ProductCard product={product} />
             </li>
           ))}
         </ul>
