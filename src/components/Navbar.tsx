@@ -23,7 +23,7 @@ export function Navbar() {
           <div className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-3">
             <div className="hidden items-center gap-6 lg:flex xl:gap-9">
               <NavLink to="/" className={navLinkClass}>
-                Home
+                Heim
               </NavLink>
 
               <NavLink to="/products" className={navLinkClass}>
@@ -82,7 +82,7 @@ export function Navbar() {
 
           <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 border-t border-stone-100 pt-4 lg:hidden">
             <NavLink to="/" className={navLinkClass}>
-              Home
+              Heim
             </NavLink>
 
             <NavLink to="/products" className={navLinkClass}>
