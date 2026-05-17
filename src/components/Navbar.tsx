@@ -1,59 +1,89 @@
-import { Link, NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { Search, ShoppingBag, User, X } from "lucide-react";
+import { SearchDropdown } from "./SearchDropdowwn";
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `pb-1 text-xs font-medium uppercase tracking-widest transition hover:border-b hover:border-stone-950 md:text-sm ${
+    isActive ? "border-b border-stone-950" : ""
+  }`;
 
 export function Navbar() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   return (
-    <header className="border-b border-stone-200 bg-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link to="/" className="text-xl font-bold text-stone-950">
-          Prjónabúðin
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-stone-200 bg-white">
+      <div className="relative">
+        <nav className="mx-auto flex max-w-[1600px] flex-col px-4 py-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-3">
+            <div className="hidden items-center gap-6 lg:flex xl:gap-9">
+              <NavLink to="/" className={navLinkClass}>
+                Home
+              </NavLink>
 
-        <div className="flex items-center gap-6 text-sm font-medium">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive
-                ? "text-stone-950"
-                : "text-stone-500 hover:text-stone-950"
-            }
-          >
-            Heim
-          </NavLink>
+              <NavLink to="/products" className={navLinkClass}>
+                Vörur
+              </NavLink>
 
-          <NavLink
-            to="/products"
-            className={({ isActive }) =>
-              isActive
-                ? "text-stone-950"
-                : "text-stone-500 hover:text-stone-950"
-            }
-          >
-            Vörur
-          </NavLink>
+              <NavLink to="/categories" className={navLinkClass}>
+                Flokkar
+              </NavLink>
+            </div>
 
-          <NavLink
-            to="/cart"
-            className={({ isActive }) =>
-              isActive
-                ? "text-stone-950"
-                : "text-stone-500 hover:text-stone-950"
-            }
-          >
-            Karfa
-          </NavLink>
+            <NavLink
+              to="/"
+              className="flex flex-col items-start lg:items-center"
+            >
+              <span className="text-2xl font-light uppercase tracking-[0.16em] text-stone-950 sm:text-3xl lg:text-4xl">
+                Prjónabúðin
+              </span>
+              <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.28em] text-stone-600 sm:text-[10px]">
+                Garn · Prjónar · Annað
+              </span>
+            </NavLink>
 
-          <NavLink
-            to="/login"
-            className={({ isActive }) =>
-              isActive
-                ? "text-stone-950"
-                : "text-stone-500 hover:text-stone-950"
-            }
-          >
-            Innskráning
-          </NavLink>
-        </div>
-      </nav>
+            <div className="flex items-center justify-end gap-4 text-stone-950 sm:gap-6">
+              <NavLink to="/login" aria-label="Innskráning">
+                <User size={22} strokeWidth={1.5} />
+              </NavLink>
+
+              <button
+                type="button"
+                aria-label="Leita"
+                onClick={() => setIsSearchOpen((current) => !current)}
+              >
+                {isSearchOpen ? (
+                  <X size={24} strokeWidth={1.5} />
+                ) : (
+                  <Search size={24} strokeWidth={1.5} />
+                )}
+              </button>
+
+              <NavLink to="/cart" aria-label="Karfa">
+                <ShoppingBag size={22} strokeWidth={1.5} />
+              </NavLink>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 border-t border-stone-100 pt-4 lg:hidden">
+            <NavLink to="/" className={navLinkClass}>
+              Home
+            </NavLink>
+
+            <NavLink to="/products" className={navLinkClass}>
+              Vörur
+            </NavLink>
+
+            <NavLink to="/categories" className={navLinkClass}>
+              Flokkar
+            </NavLink>
+          </div>
+        </nav>
+
+        {isSearchOpen && (
+          <SearchDropdown onClose={() => setIsSearchOpen(false)} />
+        )}
+      </div>
     </header>
   );
 }

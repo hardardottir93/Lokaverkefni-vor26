@@ -4,7 +4,7 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { CartPage } from "./pages/CartPage";
 import { LoginPage } from "./pages/LoginPage";
-import { Navbar } from "./components/navbar";
+import { Navbar } from "./components/Navbar";
 
 export function App() {
   return (
