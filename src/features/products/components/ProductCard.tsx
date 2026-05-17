@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { Product } from "../model/product";
 
 type ProductCardProps = {
@@ -5,10 +6,25 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate();
   const isInStock = product.stock > 0;
 
+  function handleCardClick() {
+    navigate(`/products/${product.id}`);
+  }
+
+  function handleAddToCart(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+
+    // Hér kemur cart logic seinna
+    console.log("Bæta í körfu:", product);
+  }
+
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <article
+      onClick={handleCardClick}
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
+    >
       <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
         {product.image_url ? (
           <img
@@ -30,6 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
           <h2 className="text-lg font-bold text-stone-950">{product.name}</h2>
+
           <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-600">
             {product.description}
           </p>
@@ -40,6 +57,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <p className="text-xl font-bold text-stone-950">
               {product.price.toLocaleString("is-IS")} kr.
             </p>
+
             <p
               className={`text-sm font-medium ${
                 isInStock ? "text-emerald-700" : "text-red-600"
@@ -52,6 +70,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             type="button"
             disabled={!isInStock}
+            onClick={handleAddToCart}
             className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
           >
             Bæta í körfu

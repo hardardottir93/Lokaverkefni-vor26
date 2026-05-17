@@ -29,3 +29,25 @@ export async function getProducts(): Promise<Product[]> {
 
   return (data ?? []) as unknown as Product[];
 }
+
+export async function getProductById(id: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+      *,
+      categories (
+        id,
+        name
+      )
+    `,
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
