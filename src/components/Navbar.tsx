@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, ShoppingBag, User, X } from "lucide-react";
 import { SearchDropdown } from "./SearchDropdowwn";
+import { useCartStore } from "../features/cart/store/cartStore";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `pb-1 text-xs font-medium uppercase tracking-widest transition hover:border-b hover:border-stone-950 md:text-sm ${
@@ -10,6 +11,10 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const cartItemCount = useCartStore((state) =>
+    state.items.reduce((sum, item) => sum + item.quantity, 0),
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white">
@@ -59,8 +64,18 @@ export function Navbar() {
                 )}
               </button>
 
-              <NavLink to="/cart" aria-label="Karfa">
+              <NavLink
+                to="/cart"
+                aria-label="Karfa"
+                className="relative inline-flex items-center justify-center"
+              >
                 <ShoppingBag size={22} strokeWidth={1.5} />
+
+                {cartItemCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-stone-950 px-1 text-[10px] font-semibold leading-none text-white">
+                    {cartItemCount}
+                  </span>
+                )}
               </NavLink>
             </div>
           </div>

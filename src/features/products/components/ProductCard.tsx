@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../model/product";
+import { useCartStore } from "../../cart/store/cartStore";
 
 type ProductCardProps = {
   product: Product;
@@ -7,6 +8,7 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate();
+  const addToCart = useCartStore((state) => state.addToCart);
   const isInStock = product.stock > 0;
 
   function handleCardClick() {
@@ -16,8 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
   function handleAddToCart(event: React.MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
 
-    // Hér kemur cart logic seinna
-    console.log("Bæta í körfu:", product);
+    addToCart(product);
   }
 
   return (
