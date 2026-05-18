@@ -1,21 +1,100 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../features/auth/hooks/useAuth";
+import {
+  getCartItemsForUser,
+  removeCartItem,
+  updateCartItemQuantity,
+  type SupabaseCartItem,
+} from "../features/cart/api/cartApi";
 import { useCartStore } from "../features/cart/store/cartStore";
 
 export function CartPage() {
-  const items = useCartStore((state) => state.items);
+  const { user, isLoggedIn } = useAuth();
+
+  const localItems = useCartStore((state) => state.items);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
 
-  const totalPrice = items.reduce((sum, item) => {
-    return sum + item.product.price * item.quantity;
-  }, 0);
+  const [dbItems, setDbItems] = useState<SupabaseCartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  if (items.length === 0) {
+  const isDbCart = Boolean(isLoggedIn && user);
+  const displayedItems = isDbCart ? dbItems : localItems;
+
+  async function loadDbCart() {
+    if (!user) return;
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const items = await getCartItemsForUser(user);
+      setDbItems(items);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Ekki tókst að sækja körfu",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (isDbCart) {
+      loadDbCart();
+    }
+  }, [isDbCart, user]);
+
+  const totalPrice = isDbCart
+    ? dbItems.reduce((sum, item) => {
+        return sum + (item.product.price_cents / 100) * item.quantity;
+      }, 0)
+    : localItems.reduce((sum, item) => {
+        return sum + item.product.price * item.quantity;
+      }, 0);
+
+  const totalQuantity = isDbCart
+    ? dbItems.reduce((sum, item) => sum + item.quantity, 0)
+    : localItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  async function handleClearCart() {
+    if (!isDbCart) {
+      clearCart();
+      return;
+    }
+
+    for (const item of dbItems) {
+      await removeCartItem(item.id);
+    }
+
+    await loadDbCart();
+
+    window.dispatchEvent(new Event("cart-updated"));
+  }
+
+  if (isLoading) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-3xl font-semibold text-stone-950">Karfa</h1>
+        <p className="mt-6 text-stone-600">Sæki körfu...</p>
+      </main>
+    );
+  }
+
+  if (displayedItems.length === 0) {
+    return (
+      <main className="mx-auto max-w-5xl px-4 py-12">
+        <h1 className="text-3xl font-semibold text-stone-950">Karfa</h1>
+
+        {errorMessage && (
+          <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            {errorMessage}
+          </p>
+        )}
 
         <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-8 text-center">
           <p className="text-stone-600">Karfan þín er tóm.</p>
@@ -38,88 +117,191 @@ export function CartPage() {
 
         <button
           type="button"
-          onClick={clearCart}
+          onClick={handleClearCart}
           className="text-sm font-medium text-stone-500 hover:text-red-600"
         >
           Tæma körfu
         </button>
       </div>
 
+      {errorMessage && (
+        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          {errorMessage}
+        </p>
+      )}
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <section className="space-y-4">
-          {items.map((item) => (
-            <article
-              key={item.product.id}
-              className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
-            >
-              <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-100">
-                {item.product.image_url ? (
-                  <img
-                    src={item.product.image_url}
-                    alt={item.product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-stone-400">
-                    Engin mynd
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-1 flex-col justify-between gap-4">
-                <div className="flex justify-between gap-4">
-                  <div>
-                    <h2 className="font-semibold text-stone-950">
-                      {item.product.name}
-                    </h2>
-
-                    <p className="mt-1 text-sm text-stone-500">
-                      {item.product.price.toLocaleString("is-IS")} kr.
-                    </p>
+          {isDbCart
+            ? dbItems.map((item) => (
+                <article
+                  key={item.id}
+                  className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                    {item.product.image_url ? (
+                      <img
+                        src={item.product.image_url}
+                        alt={item.product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-stone-400">
+                        Engin mynd
+                      </div>
+                    )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(item.product.id)}
-                    className="text-sm text-stone-400 hover:text-red-600"
-                  >
-                    Fjarlægja
-                  </button>
-                </div>
+                  <div className="flex flex-1 flex-col justify-between gap-4">
+                    <div className="flex justify-between gap-4">
+                      <div>
+                        <h2 className="font-semibold text-stone-950">
+                          {item.product.name}
+                        </h2>
 
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center overflow-hidden rounded-full border border-stone-300">
-                    <button
-                      type="button"
-                      onClick={() => decreaseQuantity(item.product.id)}
-                      className="px-4 py-2 text-stone-700 hover:bg-stone-100"
-                    >
-                      -
-                    </button>
+                        <p className="mt-1 text-sm text-stone-500">
+                          {(item.product.price_cents / 100).toLocaleString(
+                            "is-IS",
+                          )}{" "}
+                          kr.
+                        </p>
+                      </div>
 
-                    <span className="min-w-10 px-3 text-center text-sm font-medium">
-                      {item.quantity}
-                    </span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await removeCartItem(item.id);
+                          await loadDbCart();
+                        }}
+                        className="text-sm text-stone-400 hover:text-red-600"
+                      >
+                        Fjarlægja
+                      </button>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => increaseQuantity(item.product.id)}
-                      className="px-4 py-2 text-stone-700 hover:bg-stone-100"
-                    >
-                      +
-                    </button>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center overflow-hidden rounded-full border border-stone-300">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await updateCartItemQuantity({
+                              cartItemId: item.id,
+                              quantity: item.quantity - 1,
+                            });
+                            await loadDbCart();
+
+                            window.dispatchEvent(new Event("cart-updated"));
+                          }}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                        >
+                          -
+                        </button>
+
+                        <span className="min-w-10 px-3 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await updateCartItemQuantity({
+                              cartItemId: item.id,
+                              quantity: item.quantity + 1,
+                            });
+                            await loadDbCart();
+
+                            window.dispatchEvent(new Event("cart-updated"));
+                          }}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <p className="font-semibold text-stone-950">
+                        {(
+                          (item.product.price_cents / 100) *
+                          item.quantity
+                        ).toLocaleString("is-IS")}{" "}
+                        kr.
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))
+            : localItems.map((item) => (
+                <article
+                  key={item.product.id}
+                  className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                    {item.product.image_url ? (
+                      <img
+                        src={item.product.image_url}
+                        alt={item.product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-stone-400">
+                        Engin mynd
+                      </div>
+                    )}
                   </div>
 
-                  <p className="font-semibold text-stone-950">
-                    {(item.product.price * item.quantity).toLocaleString(
-                      "is-IS",
-                    )}{" "}
-                    kr.
-                  </p>
-                </div>
-              </div>
-            </article>
-          ))}
+                  <div className="flex flex-1 flex-col justify-between gap-4">
+                    <div className="flex justify-between gap-4">
+                      <div>
+                        <h2 className="font-semibold text-stone-950">
+                          {item.product.name}
+                        </h2>
+
+                        <p className="mt-1 text-sm text-stone-500">
+                          {item.product.price.toLocaleString("is-IS")} kr.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.product.id)}
+                        className="text-sm text-stone-400 hover:text-red-600"
+                      >
+                        Fjarlægja
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center overflow-hidden rounded-full border border-stone-300">
+                        <button
+                          type="button"
+                          onClick={() => decreaseQuantity(item.product.id)}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                        >
+                          -
+                        </button>
+
+                        <span className="min-w-10 px-3 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => increaseQuantity(item.product.id)}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <p className="font-semibold text-stone-950">
+                        {(item.product.price * item.quantity).toLocaleString(
+                          "is-IS",
+                        )}{" "}
+                        kr.
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))}
         </section>
 
         <aside className="h-fit rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
@@ -128,12 +310,12 @@ export function CartPage() {
           <div className="mt-5 space-y-3 border-b border-stone-200 pb-5">
             <div className="flex justify-between text-sm text-stone-600">
               <span>Vörur</span>
-              <span>{items.length}</span>
+              <span>{displayedItems.length}</span>
             </div>
 
             <div className="flex justify-between text-sm text-stone-600">
               <span>Samtals magn</span>
-              <span>{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+              <span>{totalQuantity}</span>
             </div>
           </div>
 
@@ -142,12 +324,12 @@ export function CartPage() {
             <span>{totalPrice.toLocaleString("is-IS")} kr.</span>
           </div>
 
-          <button
-            type="button"
-            className="mt-6 w-full rounded-full bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
+          <Link
+            to="/checkout"
+            className="mt-6 inline-flex w-full justify-center rounded-full bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
           >
             Halda áfram
-          </button>
+          </Link>
         </aside>
       </div>
     </main>

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { LogOut, Search, ShoppingBag, User, X } from "lucide-react";
 import { SearchDropdown } from "./SearchDropdowwn";
-import { useCartStore } from "../features/cart/store/cartStore";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { signOut } from "../features/auth/api/authApi";
+import { useSyncCartOnLogin } from "../features/cart/hooks/useSyncCartOnLogin";
+import { useCartCount } from "../features/cart/hooks/useCartCount";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `pb-1 text-xs font-medium uppercase tracking-widest transition hover:border-b hover:border-stone-950 md:text-sm ${
@@ -13,11 +14,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  useSyncCartOnLogin();
+
   const { user, isLoggedIn } = useAuth();
 
-  const cartItemCount = useCartStore((state) =>
-    state.items.reduce((sum, item) => sum + item.quantity, 0),
-  );
+  const cartItemCount = useCartCount();
 
   async function handleLogout() {
     await signOut();
