@@ -29,10 +29,6 @@ export function Navbar() {
               <NavLink to="/products" className={navLinkClass}>
                 Vörur
               </NavLink>
-
-              <NavLink to="/categories" className={navLinkClass}>
-                Flokkar
-              </NavLink>
             </div>
 
             <NavLink
@@ -87,10 +83,6 @@ export function Navbar() {
 
             <NavLink to="/products" className={navLinkClass}>
               Vörur
-            </NavLink>
-
-            <NavLink to="/categories" className={navLinkClass}>
-              Flokkar
             </NavLink>
           </div>
         </nav>

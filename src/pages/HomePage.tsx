@@ -67,52 +67,6 @@ export function HomePage() {
           </div>
         </div>
       </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.3em] text-stone-500">
-              Flokkar
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold text-stone-950">
-              Verslaðu eftir flokki
-            </h2>
-          </div>
-
-          <Link
-            to="/products"
-            className="hidden text-sm font-medium underline underline-offset-4 sm:inline"
-          >
-            Sjá allar vörur
-          </Link>
-        </div>
-
-        {isLoading ? (
-          <p className="text-stone-500">Sæki flokka...</p>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                to={`/products?category=${category.slug}`}
-                className="group rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-              >
-                <p className="text-sm font-medium uppercase tracking-widest text-stone-400">
-                  Flokkur
-                </p>
-
-                <h3 className="mt-3 text-xl font-semibold text-stone-950">
-                  {category.name}
-                </h3>
-
-                <p className="mt-5 text-sm font-medium text-stone-600 group-hover:text-stone-950">
-                  Skoða vörur →
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
     </main>
   );
 }
