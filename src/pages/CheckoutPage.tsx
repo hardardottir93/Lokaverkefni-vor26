@@ -8,6 +8,13 @@ import {
 import { createOrderForUser } from "../features/orders/api/ordersApi";
 import { usePaymentInputs } from "react-payment-inputs";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  checkoutSchema,
+  type CheckoutFormValues,
+} from "../features/checkout/model/checkoutSchema";
+
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
@@ -16,19 +23,23 @@ export function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const [fullName, setFullName] = useState("");
-  const [address, setAddress] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [city, setCity] = useState("");
+  const { getCardNumberProps, getExpiryDateProps, getCVCProps, meta } =
+    usePaymentInputs();
 
   const {
-    getCardNumberProps,
-    getExpiryDateProps,
-    getCVCProps,
-    getCardImageProps,
-    meta,
-  } = usePaymentInputs();
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      fullName: "",
+      address: "",
+      postalCode: "",
+      city: "",
+    },
+  });
 
   useEffect(() => {
     async function loadCheckout() {
@@ -44,7 +55,8 @@ export function CheckoutPage() {
         const cartItems = await getCartItemsForUser(user);
         setItems(cartItems);
 
-        setFullName(
+        setValue(
+          "fullName",
           user.user_metadata.full_name ??
             user.user_metadata.name ??
             user.email ??
@@ -60,7 +72,7 @@ export function CheckoutPage() {
     }
 
     loadCheckout();
-  }, [isLoggedIn, user]);
+  }, [isLoggedIn, user, setValue]);
 
   const totalCents = items.reduce((sum, item) => {
     return sum + item.product.price_cents * item.quantity;
@@ -70,9 +82,7 @@ export function CheckoutPage() {
     return sum + item.quantity;
   }, 0);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function onSubmit(_values: CheckoutFormValues) {
     if (!user) {
       navigate("/login");
       return;
@@ -180,7 +190,7 @@ export function CheckoutPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-stone-950">
@@ -192,11 +202,14 @@ export function CheckoutPage() {
               <span className="text-sm font-medium text-stone-700">Nafn</span>
               <input
                 type="text"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                required
+                {...register("fullName")}
                 className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
               />
+              {errors.fullName && (
+                <p className="text-xs text-red-600">
+                  {errors.fullName.message}
+                </p>
+              )}
             </label>
 
             <label className="block space-y-1">
@@ -205,11 +218,12 @@ export function CheckoutPage() {
               </span>
               <input
                 type="text"
-                value={address}
-                onChange={(event) => setAddress(event.target.value)}
-                required
+                {...register("address")}
                 className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
               />
+              {errors.address && (
+                <p className="text-xs text-red-600">{errors.address.message}</p>
+              )}
             </label>
 
             <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
@@ -219,22 +233,28 @@ export function CheckoutPage() {
                 </span>
                 <input
                   type="text"
-                  value={postalCode}
-                  onChange={(event) => setPostalCode(event.target.value)}
-                  required
+                  inputMode="numeric"
+                  maxLength={3}
+                  {...register("postalCode")}
                   className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
                 />
+                {errors.postalCode && (
+                  <p className="text-xs text-red-600">
+                    {errors.postalCode.message}
+                  </p>
+                )}
               </label>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-stone-700">Bær</span>
                 <input
                   type="text"
-                  value={city}
-                  onChange={(event) => setCity(event.target.value)}
-                  required
+                  {...register("city")}
                   className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
                 />
+                {errors.city && (
+                  <p className="text-xs text-red-600">{errors.city.message}</p>
+                )}
               </label>
             </div>
           </div>
