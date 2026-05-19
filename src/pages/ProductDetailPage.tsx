@@ -2,19 +2,45 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCartStore } from "../features/cart/store/cartStore";
 import { useProduct } from "../features/products/hooks/useProduct";
+import { useAuth } from "../features/auth/hooks/useAuth";
+import { syncUserCart } from "../features/cart/api/cartSyncApi";
 
 export function ProductDetailPage() {
   const { id } = useParams();
+
+  const { user, isLoggedIn } = useAuth();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const { product, isLoading, errorMessage } = useProduct(id);
   const [quantity, setQuantity] = useState(1);
 
   const addToCart = useCartStore((state) => state.addToCart);
 
-  function handleAddToCart() {
+  async function handleAddToCart() {
     if (!product) return;
 
-    addToCart(product, quantity);
+    if (!isLoggedIn || !user) {
+      addToCart(product, quantity);
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      await syncUserCart({
+        user,
+        items: [
+          {
+            product,
+            quantity,
+          },
+        ],
+      });
+
+      window.dispatchEvent(new Event("cart-updated"));
+    } finally {
+      setIsAddingToCart(false);
+    }
   }
 
   if (isLoading) {
