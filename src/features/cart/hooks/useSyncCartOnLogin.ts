@@ -6,32 +6,31 @@ import { useCartStore } from "../store/cartStore";
 export function useSyncCartOnLogin() {
   const { user, isLoggedIn } = useAuth();
   const hasSynced = useRef(false);
+  const wasLoggedIn = useRef(isLoggedIn);
 
   useEffect(() => {
     async function syncCart() {
+      const userJustLoggedIn = !wasLoggedIn.current && isLoggedIn;
+
+      wasLoggedIn.current = isLoggedIn;
+
+      if (!userJustLoggedIn || !user || hasSynced.current) {
+        return;
+      }
+
       const items = useCartStore.getState().items;
 
-      console.log("SYNC CHECK", {
-        isLoggedIn,
-        userEmail: user?.email,
-        itemCount: items.length,
-        hasSynced: hasSynced.current,
-        items,
-      });
-
-      if (!isLoggedIn || !user || items.length === 0 || hasSynced.current) {
+      if (items.length === 0) {
         return;
       }
 
       try {
         hasSynced.current = true;
 
-        const result = await syncUserCart({
+        await syncUserCart({
           user,
           items,
         });
-
-        console.log("SYNC SUCCESS", result);
 
         useCartStore.getState().clearCart();
         window.dispatchEvent(new Event("cart-updated"));

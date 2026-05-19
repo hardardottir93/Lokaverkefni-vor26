@@ -1,26 +1,30 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useCartStore } from "../features/cart/store/cartStore";
-import { useProduct } from "../features/products/hooks/useProduct";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { syncUserCart } from "../features/cart/api/cartSyncApi";
+import { useCartStore } from "../features/cart/store/cartStore";
+import { useProduct } from "../features/products/hooks/useProduct";
 
 export function ProductDetailPage() {
   const { id } = useParams();
 
   const { user, isLoggedIn } = useAuth();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-
   const { product, isLoading, errorMessage } = useProduct(id);
+
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [cartMessage, setCartMessage] = useState("");
 
   const addToCart = useCartStore((state) => state.addToCart);
 
   async function handleAddToCart() {
     if (!product) return;
 
+    setCartMessage("");
+
     if (!isLoggedIn || !user) {
       addToCart(product, quantity);
+      setCartMessage("Vöru var bætt í körfu.");
       return;
     }
 
@@ -38,6 +42,11 @@ export function ProductDetailPage() {
       });
 
       window.dispatchEvent(new Event("cart-updated"));
+      setCartMessage("Vöru var bætt í körfu.");
+    } catch (error) {
+      setCartMessage(
+        error instanceof Error ? error.message : "Ekki tókst að bæta í körfu",
+      );
     } finally {
       setIsAddingToCart(false);
     }
@@ -118,7 +127,7 @@ export function ProductDetailPage() {
               <button
                 type="button"
                 onClick={decreaseQuantity}
-                disabled={!isInStock || quantity <= 1}
+                disabled={!isInStock || quantity <= 1 || isAddingToCart}
                 className="px-4 py-3 text-stone-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
               >
                 -
@@ -131,7 +140,7 @@ export function ProductDetailPage() {
               <button
                 type="button"
                 onClick={increaseQuantity}
-                disabled={!isInStock || quantity >= stock}
+                disabled={!isInStock || quantity >= stock || isAddingToCart}
                 className="px-4 py-3 text-stone-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
               >
                 +
@@ -141,12 +150,22 @@ export function ProductDetailPage() {
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={!isInStock}
+              disabled={!isInStock || isAddingToCart}
               className="w-full rounded-full bg-stone-950 px-6 py-3 font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300 sm:w-auto"
             >
-              {isInStock ? "Bæta í körfu" : "Uppselt"}
+              {!isInStock
+                ? "Uppselt"
+                : isAddingToCart
+                  ? "Bæti í körfu..."
+                  : "Bæta í körfu"}
             </button>
           </div>
+
+          {cartMessage && (
+            <p className="text-sm font-medium text-emerald-700">
+              {cartMessage}
+            </p>
+          )}
         </section>
       </div>
     </main>

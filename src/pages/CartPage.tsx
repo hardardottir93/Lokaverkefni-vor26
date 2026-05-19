@@ -186,7 +186,10 @@ export function CartPage() {
                           onClick={async () => {
                             await updateCartItemQuantity({
                               cartItemId: item.id,
-                              quantity: item.quantity - 1,
+                              quantity: Math.min(
+                                item.quantity + 1,
+                                item.product.stock_quantity,
+                              ),
                             });
                             await loadDbCart();
 
@@ -206,12 +209,18 @@ export function CartPage() {
                           onClick={async () => {
                             await updateCartItemQuantity({
                               cartItemId: item.id,
-                              quantity: item.quantity + 1,
+                              quantity: Math.min(
+                                item.quantity + 1,
+                                item.product.stock_quantity,
+                              ),
                             });
                             await loadDbCart();
 
                             window.dispatchEvent(new Event("cart-updated"));
                           }}
+                          disabled={
+                            item.quantity >= item.product.stock_quantity
+                          }
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100"
                         >
                           +
@@ -286,7 +295,8 @@ export function CartPage() {
                         <button
                           type="button"
                           onClick={() => increaseQuantity(item.product.id)}
-                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                          disabled={item.quantity >= item.product.stock}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           +
                         </button>

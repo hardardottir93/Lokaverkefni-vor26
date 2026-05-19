@@ -71,11 +71,22 @@ export async function syncLocalCartToSupabase(params: {
       throw fetchError;
     }
 
+    const stock = item.product.stock;
+
+    if (stock <= 0) {
+      continue;
+    }
+
     if (existingItem) {
+      const nextQuantity = Math.min(
+        existingItem.quantity + item.quantity,
+        stock,
+      );
+
       const { error } = await supabase
         .from("cart_items")
         .update({
-          quantity: existingItem.quantity + item.quantity,
+          quantity: nextQuantity,
         })
         .eq("id", existingItem.id);
 
@@ -86,7 +97,7 @@ export async function syncLocalCartToSupabase(params: {
       const { error } = await supabase.from("cart_items").insert({
         cart_id: cart.id,
         product_id: item.product.id,
-        quantity: item.quantity,
+        quantity: Math.min(item.quantity, stock),
       });
 
       if (error) {
