@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../model/product";
-import { useCartStore } from "../../cart/store/cartStore";
+import { useAddToCart } from "../../cart/hooks/useAddToCart";
 
 type ProductCardProps = {
   product: Product;
@@ -8,17 +8,11 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate();
-  const addToCart = useCartStore((state) => state.addToCart);
+  const { addToCart, isAddingToCart } = useAddToCart();
   const isInStock = product.stock > 0;
 
   function handleCardClick() {
     navigate(`/products/${product.id}`);
-  }
-
-  function handleAddToCart(event: React.MouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-
-    addToCart(product);
   }
 
   return (
@@ -70,11 +64,20 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <button
             type="button"
-            disabled={!isInStock}
-            onClick={handleAddToCart}
+            onClick={async (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              await addToCart({ product, quantity: 1 });
+            }}
+            disabled={product.stock <= 0 || isAddingToCart}
             className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
           >
-            Bæta í körfu
+            {product.stock <= 0
+              ? "Uppselt"
+              : isAddingToCart
+                ? "Bæti..."
+                : "Bæta í körfu"}
           </button>
         </div>
       </div>

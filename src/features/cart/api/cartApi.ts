@@ -7,6 +7,7 @@ import { getOrCreateActiveCart } from "./cartSyncApi";
 export type SupabaseCartItem = {
   id: string;
   quantity: number;
+  created_at: string;
   product: {
     id: string;
     name: string;
@@ -47,23 +48,25 @@ export async function getCartItemsForUser(user: User) {
     .from("cart_items")
     .select(
       `
+    id,
+    quantity,
+    created_at,
+    product:products (
       id,
-      quantity,
-      product:products (
-        id,
-        name,
-        slug,
-        description,
-        price,
-        price_cents,
-        currency,
-        stock,
-        stock_quantity,
-        image_url
-      )
-    `,
+      name,
+      slug,
+      description,
+      price,
+      price_cents,
+      currency,
+      stock,
+      stock_quantity,
+      image_url
     )
-    .eq("cart_id", cart.id);
+  `,
+    )
+    .eq("cart_id", cart.id)
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw error;

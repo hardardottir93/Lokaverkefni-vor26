@@ -19,16 +19,21 @@ export function CartPage() {
   const clearCart = useCartStore((state) => state.clearCart);
 
   const [dbItems, setDbItems] = useState<SupabaseCartItem[]>([]);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const isDbCart = Boolean(isLoggedIn && user);
   const displayedItems = isDbCart ? dbItems : localItems;
 
-  async function loadDbCart() {
+  async function loadDbCart(showLoading = false) {
     if (!user) return;
 
-    setIsLoading(true);
+    if (showLoading) {
+      setIsLoading(true);
+    }
+
     setErrorMessage("");
 
     try {
@@ -39,13 +44,15 @@ export function CartPage() {
         error instanceof Error ? error.message : "Ekki tókst að sækja körfu",
       );
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     if (isDbCart) {
-      loadDbCart();
+      loadDbCart(true);
     }
   }, [isDbCart, user]);
 
@@ -72,7 +79,6 @@ export function CartPage() {
     }
 
     await loadDbCart();
-
     window.dispatchEvent(new Event("cart-updated"));
   }
 
@@ -165,6 +171,12 @@ export function CartPage() {
                           )}{" "}
                           kr.
                         </p>
+
+                        {item.quantity >= item.product.stock_quantity && (
+                          <p className="mt-1 text-xs text-stone-500">
+                            Hámarksfjöldi á lager valinn
+                          </p>
+                        )}
                       </div>
 
                       <button
@@ -172,6 +184,7 @@ export function CartPage() {
                         onClick={async () => {
                           await removeCartItem(item.id);
                           await loadDbCart();
+                          window.dispatchEvent(new Event("cart-updated"));
                         }}
                         className="text-sm text-stone-400 hover:text-red-600"
                       >
@@ -184,18 +197,26 @@ export function CartPage() {
                         <button
                           type="button"
                           onClick={async () => {
-                            await updateCartItemQuantity({
-                              cartItemId: item.id,
-                              quantity: Math.min(
-                                item.quantity + 1,
-                                item.product.stock_quantity,
-                              ),
-                            });
-                            await loadDbCart();
+                            setUpdatingItemId(item.id);
 
-                            window.dispatchEvent(new Event("cart-updated"));
+                            try {
+                              if (item.quantity <= 1) {
+                                await removeCartItem(item.id);
+                              } else {
+                                await updateCartItemQuantity({
+                                  cartItemId: item.id,
+                                  quantity: item.quantity - 1,
+                                });
+                              }
+
+                              await loadDbCart(false);
+                              window.dispatchEvent(new Event("cart-updated"));
+                            } finally {
+                              setUpdatingItemId(null);
+                            }
                           }}
-                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                          disabled={updatingItemId === item.id}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           -
                         </button>
@@ -207,21 +228,28 @@ export function CartPage() {
                         <button
                           type="button"
                           onClick={async () => {
-                            await updateCartItemQuantity({
-                              cartItemId: item.id,
-                              quantity: Math.min(
-                                item.quantity + 1,
-                                item.product.stock_quantity,
-                              ),
-                            });
-                            await loadDbCart();
+                            setUpdatingItemId(item.id);
 
-                            window.dispatchEvent(new Event("cart-updated"));
+                            try {
+                              await updateCartItemQuantity({
+                                cartItemId: item.id,
+                                quantity: Math.min(
+                                  item.quantity + 1,
+                                  item.product.stock_quantity,
+                                ),
+                              });
+
+                              await loadDbCart(false);
+                              window.dispatchEvent(new Event("cart-updated"));
+                            } finally {
+                              setUpdatingItemId(null);
+                            }
                           }}
                           disabled={
-                            item.quantity >= item.product.stock_quantity
+                            item.quantity >= item.product.stock_quantity ||
+                            updatingItemId === item.id
                           }
-                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           +
                         </button>
@@ -267,6 +295,12 @@ export function CartPage() {
                         <p className="mt-1 text-sm text-stone-500">
                           {item.product.price.toLocaleString("is-IS")} kr.
                         </p>
+
+                        {item.quantity >= item.product.stock && (
+                          <p className="mt-1 text-xs text-stone-500">
+                            Hámarksfjöldi á lager valinn
+                          </p>
+                        )}
                       </div>
 
                       <button
@@ -282,7 +316,14 @@ export function CartPage() {
                       <div className="flex items-center overflow-hidden rounded-full border border-stone-300">
                         <button
                           type="button"
-                          onClick={() => decreaseQuantity(item.product.id)}
+                          onClick={() => {
+                            if (item.quantity <= 1) {
+                              removeFromCart(item.product.id);
+                              return;
+                            }
+
+                            decreaseQuantity(item.product.id);
+                          }}
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100"
                         >
                           -
