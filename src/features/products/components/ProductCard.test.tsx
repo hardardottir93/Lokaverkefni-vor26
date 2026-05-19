@@ -22,13 +22,6 @@ const mockProduct: Product = {
   created_at: "",
 };
 
-const outOfStockProduct: Product = {
-  ...mockProduct,
-  id: 2,
-  name: "Uppselt garn",
-  stock: 0,
-};
-
 function renderProductCard(product: Product) {
   return render(
     <MemoryRouter>
@@ -68,11 +61,19 @@ describe("ProductCard", () => {
   });
 
   it("disables add to cart button when product is out of stock", () => {
-    renderProductCard(outOfStockProduct);
+    render(
+      <MemoryRouter>
+        <ProductCard
+          product={{
+            ...mockProduct,
+            stock: 0,
+          }}
+        />
+      </MemoryRouter>,
+    );
 
-    expect(
-      screen.getByRole("button", { name: /bæta í körfu/i }),
-    ).toBeDisabled();
-    expect(screen.getByText("Uppselt")).toBeInTheDocument();
+    const button = screen.getByRole("button", { name: /uppselt/i });
+
+    expect(button).toBeDisabled();
   });
 });
