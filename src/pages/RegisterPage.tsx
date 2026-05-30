@@ -24,15 +24,27 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await signUpWithEmail({
+      const data = await signUpWithEmail({
         fullName,
         email,
         password,
       });
 
-      setMessage("Aðgangur stofnaður. Þú getur nú skráð þig inn.");
-      navigate("/login");
+      if (!data.user) {
+        setErrorMessage("Notandi var ekki stofnaður.");
+        return;
+      }
+
+      setMessage(
+        `Staðfestingarpóstur hefur verið sendur á ${email}. Opnaðu póstinn og staðfestu aðganginn áður en þú skráir þig inn.`,
+      );
+
+      setFullName("");
+      setEmail("");
+      setPassword("");
     } catch (error) {
+      console.error("SIGNUP ERROR", error);
+
       setErrorMessage(
         error instanceof Error ? error.message : "Nýskráning mistókst",
       );
@@ -112,9 +124,16 @@ export function RegisterPage() {
         </label>
 
         {message && (
-          <p className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            {message}
-          </p>
+          <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+            <p>{message}</p>
+
+            <Link
+              to="/login"
+              className="mt-2 inline-flex font-medium underline"
+            >
+              Fara á innskráningu
+            </Link>
+          </div>
         )}
 
         {errorMessage && (

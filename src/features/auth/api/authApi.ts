@@ -11,6 +11,7 @@ export async function signUpWithEmail(params: {
     email,
     password,
     options: {
+      emailRedirectTo: `${window.location.origin}/login?confirmed=true`,
       data: {
         full_name: fullName,
       },
@@ -23,7 +24,6 @@ export async function signUpWithEmail(params: {
 
   return data;
 }
-
 export async function signInWithEmail(params: {
   email: string;
   password: string;
