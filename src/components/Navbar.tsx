@@ -53,20 +53,9 @@ export function Navbar() {
 
             <div className="flex items-center justify-end gap-4 text-stone-950 sm:gap-6">
               {isLoggedIn ? (
-                <div className="hidden items-center gap-3 md:flex">
-                  <span className="max-w-40 truncate text-xs text-stone-600">
-                    {user?.email}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    aria-label="Skrá út"
-                    className="transition hover:text-stone-600"
-                  >
-                    <LogOut size={22} strokeWidth={1.5} />
-                  </button>
-                </div>
+                <NavLink to="/profile" aria-label="Mín síða">
+                  <User size={22} strokeWidth={1.5} />
+                </NavLink>
               ) : (
                 <NavLink to="/login" aria-label="Innskráning">
                   <User size={22} strokeWidth={1.5} />

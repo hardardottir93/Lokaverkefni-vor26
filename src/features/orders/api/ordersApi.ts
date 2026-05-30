@@ -122,3 +122,51 @@ export async function getOrderById(orderId: string) {
 
   return data;
 }
+
+export async function getOrdersForUser(user: User) {
+  if (!user.email) {
+    return [];
+  }
+
+  const shop = await getShopBySlug("prjonabudin");
+
+  const customer = await getOrCreateCustomer({
+    shopId: shop.id,
+    name:
+      user.user_metadata.full_name ??
+      user.user_metadata.name ??
+      user.email ??
+      "Viðskiptavinur",
+    email: user.email,
+  });
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `
+      id,
+      status,
+      subtotal_cents,
+      total_cents,
+      currency,
+      submitted_at,
+      order_items (
+        id,
+        product_name,
+        variant_name,
+        unit_price_cents,
+        quantity,
+        line_total_cents
+      )
+    `,
+    )
+    .eq("shop_id", shop.id)
+    .eq("customer_id", customer.id)
+    .order("submitted_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
