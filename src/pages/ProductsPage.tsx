@@ -1,16 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ProductCard } from "../features/products/components/ProductCard";
-import { getCategories } from "../features/products/api/categoriesApi";
-import { getProducts } from "../features/products/api/productsApi";
-import type { Product } from "../features/products/model/product";
-import type { Category } from "../features/products/model/product";
+import { useCategories } from "../features/products/hooks/useCategories";
+import { useProducts } from "../features/products/hooks/useProducts";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const {
+    products,
+    isLoading: isProductsLoading,
+    errorMessage: productsErrorMessage,
+  } = useProducts();
+
+  const {
+    categories,
+    isLoading: isCategoriesLoading,
+    errorMessage: categoriesErrorMessage,
+  } = useCategories();
+
+  const isLoading = isProductsLoading || isCategoriesLoading;
+  const errorMessage = productsErrorMessage || categoriesErrorMessage;
 
   const [selectedCategorySlugs, setSelectedCategorySlugs] = useState<string[]>(
     [],
@@ -18,31 +28,6 @@ export function ProductsPage() {
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [showOnlyInStock, setShowOnlyInStock] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    async function loadProductsPage() {
-      try {
-        const [productsFromApi, categoriesFromApi] = await Promise.all([
-          getProducts(),
-          getCategories(),
-        ]);
-
-        setProducts(productsFromApi);
-        setCategories(categoriesFromApi);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "Something went wrong",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadProductsPage();
-  }, []);
 
   const filteredProducts = useMemo(() => {
     let nextProducts = [...products];

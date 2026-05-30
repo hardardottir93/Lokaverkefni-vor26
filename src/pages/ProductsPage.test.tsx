@@ -1,8 +1,13 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ProductsPage } from "./ProductsPage";
+import { getCategories } from "../features/products/api/categoriesApi";
+import { getProducts } from "../features/products/api/productsApi";
 
 vi.mock("../features/products/api/productsApi", () => ({
   getProducts: vi.fn(),
@@ -12,88 +17,83 @@ vi.mock("../features/products/api/categoriesApi", () => ({
   getCategories: vi.fn(),
 }));
 
-vi.mock("../features/cart/hooks/useAddToCart", () => ({
-  useAddToCart: () => ({
-    addToCart: vi.fn(),
-    isAddingToCart: false,
-  }),
-}));
+const mockedGetProducts = vi.mocked(getProducts);
+const mockedGetCategories = vi.mocked(getCategories);
 
-import { getProducts } from "../features/products/api/productsApi";
-import { getCategories } from "../features/products/api/categoriesApi";
+function renderWithProviders(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
 
-const mockProducts = [
-  {
-    id: 1,
-    name: "Merino garn",
-    slug: "merino-garn",
-    description: "Mjúkt garn",
-    price: 1490,
-    price_cents: 149000,
-    currency: "ISK",
-    stock: 10,
-    stock_quantity: 10,
-    image_url: null,
-    created_at: "2026-01-01",
-    category_id: 1,
-    categories: {
-      id: 1,
-      name: "Garn",
-      slug: "garn",
-      created_at: "2026-01-01",
-    },
-  },
-  {
-    id: 2,
-    name: "Hringprjónar",
-    slug: "hringprjonar",
-    description: "Góðir prjónar",
-    price: 1290,
-    price_cents: 129000,
-    currency: "ISK",
-    stock: 5,
-    stock_quantity: 5,
-    image_url: null,
-    created_at: "2026-01-02",
-    category_id: 2,
-    categories: {
-      id: 2,
-      name: "Prjónar",
-      slug: "prjonar",
-      created_at: "2026-01-01",
-    },
-  },
-];
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
 
 const mockCategories = [
   {
-    id: 1,
+    id: "category-1",
     name: "Garn",
     slug: "garn",
-    created_at: "2026-01-01",
   },
   {
-    id: 2,
+    id: "category-2",
     name: "Prjónar",
     slug: "prjonar",
-    created_at: "2026-01-01",
+  },
+];
+
+const mockProducts = [
+  {
+    id: "product-1",
+    name: "Merino garn",
+    description: "Mjúkt garn",
+    price: 1990,
+    stock: 10,
+    image_url: "",
+    created_at: "2026-01-02T00:00:00.000Z",
+    category_id: "category-1",
+    categories: {
+      id: "category-1",
+      name: "Garn",
+      slug: "garn",
+    },
+  },
+  {
+    id: "product-2",
+    name: "Hringprjónar",
+    description: "Góðir prjónar",
+    price: 1290,
+    stock: 5,
+    image_url: "",
+    created_at: "2026-01-01T00:00:00.000Z",
+    category_id: "category-2",
+    categories: {
+      id: "category-2",
+      name: "Prjónar",
+      slug: "prjonar",
+    },
   },
 ];
 
 describe("ProductsPage", () => {
   beforeEach(() => {
-    vi.mocked(getProducts).mockResolvedValue(mockProducts);
-    vi.mocked(getCategories).mockResolvedValue(mockCategories);
+    vi.clearAllMocks();
+
+    mockedGetProducts.mockResolvedValue(mockProducts as never);
+    mockedGetCategories.mockResolvedValue(mockCategories as never);
   });
 
   it("filters products by selected category", async () => {
     const user = userEvent.setup();
 
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>,
-    );
+    renderWithProviders(<ProductsPage />);
 
     expect(await screen.findByText("Merino garn")).toBeInTheDocument();
     expect(screen.getByText("Hringprjónar")).toBeInTheDocument();
