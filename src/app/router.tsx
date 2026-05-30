@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { Layout } from "../components/Layout";
+import { ProtectedRoute } from "../components/ProtectedRoutes";
 import { CartPage } from "../pages/CartPage";
 import { CheckoutPage } from "../pages/CheckoutPage";
 import { HomePage } from "../pages/HomePage";
@@ -8,6 +9,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { OrderConfirmationPage } from "../pages/OrderConfirmationPage";
 import { ProductsPage } from "../pages/ProductsPage";
 import { ProductDetailPage } from "../pages/ProductDetailPage";
+import { ProfilePage } from "../pages/ProfilePage";
 import { RegisterPage } from "../pages/RegisterPage";
 
 export const router = createBrowserRouter([
@@ -32,10 +34,6 @@ export const router = createBrowserRouter([
         element: <CartPage />,
       },
       {
-        path: "checkout",
-        element: <CheckoutPage />,
-      },
-      {
         path: "login",
         element: <LoginPage />,
       },
@@ -44,8 +42,21 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: "order-confirmation",
-        element: <OrderConfirmationPage />,
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "checkout",
+            element: <CheckoutPage />,
+          },
+          {
+            path: "order-confirmation",
+            element: <OrderConfirmationPage />,
+          },
+          {
+            path: "profile",
+            element: <ProfilePage />,
+          },
+        ],
       },
     ],
   },
