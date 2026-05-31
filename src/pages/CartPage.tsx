@@ -164,6 +164,13 @@ export function CartPage() {
                           {item.product.name}
                         </h2>
 
+                        {item.variant && (
+                          <p className="mt-1 text-sm text-stone-500">
+                            Litur:{" "}
+                            {item.variant.color_name ?? item.variant.name}
+                          </p>
+                        )}
+
                         <p className="mt-1 text-sm text-stone-500">
                           {(item.product.price_cents / 100).toLocaleString(
                             "is-IS",

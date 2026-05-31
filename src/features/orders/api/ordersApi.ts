@@ -58,6 +58,7 @@ export async function createOrderForUser(user: User) {
     order_id: order.id,
     product_id: item.product.id,
     product_name: item.product.name,
+    variant_name: item.variant?.color_name ?? item.variant?.name ?? null,
     unit_price_cents: item.product.price_cents,
     quantity: item.quantity,
     line_total_cents: item.product.price_cents * item.quantity,

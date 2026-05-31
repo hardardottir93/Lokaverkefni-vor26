@@ -68,11 +68,13 @@ export async function getProductById(id: string) {
       )
     `,
     )
+    .eq("id", id)
     .eq("is_active", true)
-    .single();
-
+    .limit(1)
+    .maybeSingle();
   if (error) {
-    throw new Error(error.message);
+    console.error("GET PRODUCT ERROR", error);
+    throw error;
   }
 
   return data;
