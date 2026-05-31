@@ -171,7 +171,9 @@ export function CartPage() {
                           kr.
                         </p>
 
-                        {item.quantity >= item.product.stock_quantity && (
+                        {item.quantity >=
+                          (item.variant?.stock ??
+                            item.product.stock_quantity) && (
                           <p className="mt-1 text-xs text-stone-500">
                             Hámarksfjöldi á lager valinn
                           </p>
@@ -234,7 +236,8 @@ export function CartPage() {
                                 cartItemId: item.id,
                                 quantity: Math.min(
                                   item.quantity + 1,
-                                  item.product.stock_quantity,
+                                  item.variant?.stock ??
+                                    item.product.stock_quantity,
                                 ),
                               });
 
@@ -245,7 +248,9 @@ export function CartPage() {
                             }
                           }}
                           disabled={
-                            item.quantity >= item.product.stock_quantity ||
+                            item.quantity >=
+                              (item.variant?.stock ??
+                                item.product.stock_quantity) ||
                             updatingItemId === item.id
                           }
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
@@ -267,7 +272,7 @@ export function CartPage() {
               ))
             : localItems.map((item) => (
                 <article
-                  key={item.product.id}
+                  key={`${item.product.id}-${item.variant?.id ?? "no-variant"}`}
                   className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
                 >
                   <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-stone-100">
@@ -291,11 +296,18 @@ export function CartPage() {
                           {item.product.name}
                         </h2>
 
+                        {item.variant && (
+                          <p className="mt-1 text-sm text-stone-500">
+                            Litur:{" "}
+                            {item.variant.color_name ?? item.variant.name}
+                          </p>
+                        )}
+
                         <p className="mt-1 text-sm text-stone-500">
                           {item.product.price.toLocaleString("is-IS")} kr.
                         </p>
-
-                        {item.quantity >= item.product.stock && (
+                        {item.quantity >=
+                          (item.variant?.stock ?? item.product.stock) && (
                           <p className="mt-1 text-xs text-stone-500">
                             Hámarksfjöldi á lager valinn
                           </p>
@@ -304,7 +316,12 @@ export function CartPage() {
 
                       <button
                         type="button"
-                        onClick={() => removeFromCart(item.product.id)}
+                        onClick={() =>
+                          removeFromCart(
+                            item.product.id,
+                            item.variant?.id ?? null,
+                          )
+                        }
                         className="text-sm text-stone-400 hover:text-red-600"
                       >
                         Fjarlægja
@@ -317,11 +334,17 @@ export function CartPage() {
                           type="button"
                           onClick={() => {
                             if (item.quantity <= 1) {
-                              removeFromCart(item.product.id);
+                              removeFromCart(
+                                item.product.id,
+                                item.variant?.id ?? null,
+                              );
                               return;
                             }
 
-                            decreaseQuantity(item.product.id);
+                            decreaseQuantity(
+                              item.product.id,
+                              item.variant?.id ?? null,
+                            );
                           }}
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100"
                         >
@@ -334,8 +357,16 @@ export function CartPage() {
 
                         <button
                           type="button"
-                          onClick={() => increaseQuantity(item.product.id)}
-                          disabled={item.quantity >= item.product.stock}
+                          onClick={() =>
+                            increaseQuantity(
+                              item.product.id,
+                              item.variant?.id ?? null,
+                            )
+                          }
+                          disabled={
+                            item.quantity >=
+                            (item.variant?.stock ?? item.product.stock)
+                          }
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
                           +

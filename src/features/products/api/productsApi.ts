@@ -18,9 +18,22 @@ export async function getProducts(): Promise<Product[]> {
         id,
         name,
         slug
+      ),
+       product_variants (
+        id,
+        product_id,
+        name,
+        option_type,
+        color_name,
+        size,
+        sku,
+        stock,
+        price,
+        created_at
       )
     `,
     )
+    .eq("is_active", true)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -38,11 +51,24 @@ export async function getProductById(id: string) {
       *,
       categories (
         id,
-        name
+        name,
+        slug
+      ),
+        product_variants (
+        id,
+        product_id,
+        name,
+        option_type,
+        color_name,
+        size,
+        sku,
+        stock,
+        price,
+        created_at
       )
     `,
     )
-    .eq("id", id)
+    .eq("is_active", true)
     .single();
 
   if (error) {

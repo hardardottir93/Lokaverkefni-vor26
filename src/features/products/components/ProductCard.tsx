@@ -10,6 +10,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate();
   const { addToCart, isAddingToCart } = useAddToCart();
   const isInStock = product.stock > 0;
+  const hasVariants = (product.product_variants?.length ?? 0) > 0;
 
   function handleCardClick() {
     navigate(`/products/${product.id}`);
@@ -62,23 +63,29 @@ export function ProductCard({ product }: ProductCardProps) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={async (event) => {
-              event.preventDefault();
-              event.stopPropagation();
+          {hasVariants ? (
+            <span className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-950 transition group-hover:border-stone-950">
+              Velja lit
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
 
-              await addToCart({ product, quantity: 1 });
-            }}
-            disabled={product.stock <= 0 || isAddingToCart}
-            className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
-          >
-            {product.stock <= 0
-              ? "Uppselt"
-              : isAddingToCart
-                ? "Bæti..."
-                : "Bæta í körfu"}
-          </button>
+                await addToCart({ product, quantity: 1 });
+              }}
+              disabled={product.stock <= 0 || isAddingToCart}
+              className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
+            >
+              {product.stock <= 0
+                ? "Uppselt"
+                : isAddingToCart
+                  ? "Bæti..."
+                  : "Bæta í körfu"}
+            </button>
+          )}
         </div>
       </div>
     </article>

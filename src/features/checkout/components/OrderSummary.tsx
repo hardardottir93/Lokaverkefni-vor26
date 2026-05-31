@@ -2,10 +2,16 @@ type CartItem = {
   id: string;
   quantity: number;
   product: {
-    id: string;
+    id: string | number;
     name: string;
     price: number;
   };
+  variant?: {
+    id: string;
+    name: string;
+    color_name: string | null;
+    size: string | null;
+  } | null;
 };
 
 type OrderSummaryProps = {
@@ -28,6 +34,13 @@ export function OrderSummary({
           <div key={item.id} className="flex justify-between gap-4 text-sm">
             <div>
               <p className="font-medium text-stone-950">{item.product.name}</p>
+
+              {item.variant && (
+                <p className="text-stone-500">
+                  Litur: {item.variant.color_name ?? item.variant.name}
+                </p>
+              )}
+
               <p className="text-stone-500">Magn: {item.quantity}</p>
             </div>
 

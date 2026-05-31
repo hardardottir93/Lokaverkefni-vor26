@@ -61,18 +61,26 @@ export async function syncLocalCartToSupabase(params: {
   });
 
   for (const item of items) {
-    const { data: existingItem, error: fetchError } = await supabase
+    let existingItemQuery = supabase
       .from("cart_items")
       .select("*")
       .eq("cart_id", cart.id)
-      .eq("product_id", item.product.id)
-      .maybeSingle();
+      .eq("product_id", item.product.id);
+
+    if (item.variant?.id) {
+      existingItemQuery = existingItemQuery.eq("variant_id", item.variant.id);
+    } else {
+      existingItemQuery = existingItemQuery.is("variant_id", null);
+    }
+
+    const { data: existingItem, error: fetchError } =
+      await existingItemQuery.maybeSingle();
 
     if (fetchError) {
       throw fetchError;
     }
 
-    const stock = item.product.stock;
+    const stock = item.variant?.stock ?? item.product.stock;
 
     if (stock <= 0) {
       continue;
@@ -98,9 +106,9 @@ export async function syncLocalCartToSupabase(params: {
       const { error } = await supabase.from("cart_items").insert({
         cart_id: cart.id,
         product_id: item.product.id,
+        variant_id: item.variant?.id ?? null,
         quantity: Math.min(item.quantity, stock),
       });
-
       if (error) {
         throw error;
       }

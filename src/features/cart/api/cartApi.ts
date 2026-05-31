@@ -20,6 +20,16 @@ export type SupabaseCartItem = {
     stock_quantity: number;
     image_url: string | null;
   };
+  variant: {
+    id: string;
+    name: string;
+    option_type: string;
+    color_name: string | null;
+    size: string | null;
+    sku: string | null;
+    stock: number;
+    price: number | null;
+  } | null;
 };
 
 export async function getCartItemsForUser(user: User) {
@@ -51,6 +61,7 @@ export async function getCartItemsForUser(user: User) {
     id,
     quantity,
     created_at,
+    variant_id,
     product:products (
       id,
       name,
@@ -62,6 +73,16 @@ export async function getCartItemsForUser(user: User) {
       stock,
       stock_quantity,
       image_url
+    ),
+    variant:product_variants (
+      id,
+      name,
+      option_type,
+      color_name,
+      size,
+      sku,
+      stock,
+      price
     )
   `,
     )
