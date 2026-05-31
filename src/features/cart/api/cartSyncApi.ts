@@ -34,7 +34,8 @@ export async function getOrCreateActiveCart(params: {
       status: "active",
     })
     .select("*")
-    .single();
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
     throw error;

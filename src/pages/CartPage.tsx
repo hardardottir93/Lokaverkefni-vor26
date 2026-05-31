@@ -40,9 +40,8 @@ export function CartPage() {
       const items = await getCartItemsForUser(user);
       setDbItems(items);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Ekki tókst að sækja körfu",
-      );
+      console.error("GET CART ERROR", error);
+      setErrorMessage("Ekki tókst að sækja körfu");
     } finally {
       if (showLoading) {
         setIsLoading(false);

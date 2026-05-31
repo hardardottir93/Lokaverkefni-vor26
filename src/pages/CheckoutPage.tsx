@@ -14,6 +14,9 @@ import {
   checkoutSchema,
   type CheckoutFormValues,
 } from "../features/checkout/model/checkoutSchema";
+import { OrderSummary } from "../features/checkout/components/OrderSummary";
+import { FakePaymentSection } from "../features/checkout/components/FakePaymentSections";
+import { DeliveryDetailsSection } from "../features/checkout/components/DeliveryDetailsSection";
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -193,157 +196,14 @@ export function CheckoutPage() {
           onSubmit={handleSubmit(onSubmit)}
           className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
         >
-          <h2 className="text-xl font-semibold text-stone-950">
-            Afhendingarupplýsingar
-          </h2>
+          <DeliveryDetailsSection register={register} errors={errors} />
 
-          <div className="mt-6 grid gap-4">
-            <label className="block space-y-1">
-              <span className="text-sm font-medium text-stone-700">Nafn</span>
-              <input
-                type="text"
-                {...register("fullName")}
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-              />
-              {errors.fullName && (
-                <p className="text-xs text-red-600">
-                  {errors.fullName.message}
-                </p>
-              )}
-            </label>
-
-            <label className="block space-y-1">
-              <span className="text-sm font-medium text-stone-700">
-                Heimilisfang
-              </span>
-              <input
-                type="text"
-                {...register("address")}
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-              />
-              {errors.address && (
-                <p className="text-xs text-red-600">{errors.address.message}</p>
-              )}
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-              <label className="block space-y-1">
-                <span className="text-sm font-medium text-stone-700">
-                  Póstnúmer
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={3}
-                  {...register("postalCode")}
-                  className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-                />
-                {errors.postalCode && (
-                  <p className="text-xs text-red-600">
-                    {errors.postalCode.message}
-                  </p>
-                )}
-              </label>
-
-              <label className="block space-y-1">
-                <span className="text-sm font-medium text-stone-700">Bær</span>
-                <input
-                  type="text"
-                  {...register("city")}
-                  className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-                />
-                {errors.city && (
-                  <p className="text-xs text-red-600">{errors.city.message}</p>
-                )}
-              </label>
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-2xl bg-stone-50 p-5">
-            <h2 className="text-xl font-semibold text-stone-950">
-              Gervigreiðsla
-            </h2>
-
-            <p className="mt-2 text-sm text-stone-600">
-              Þessi greiðsla er aðeins til sýnis fyrir lokaverkefnið. Engar
-              kortaupplýsingar eru vistaðar.
-            </p>
-
-            <div className="mt-4 grid gap-4">
-              <label className="block space-y-1">
-                <span className="text-sm font-medium text-stone-700">
-                  Nafn á korti
-                </span>
-                <input
-                  type="text"
-                  required
-                  placeholder="Prufu Notandi"
-                  className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-                />
-              </label>
-
-              <label className="block space-y-1">
-                <span className="text-sm font-medium text-stone-700">
-                  Kortanúmer
-                </span>
-
-                <div className="flex items-center gap-3 rounded-lg border border-stone-300 bg-white px-3 py-2 focus-within:border-stone-950">
-                  <input
-                    {...getCardNumberProps()}
-                    placeholder="4242 4242 4242 4242"
-                    maxLength={19}
-                    className="w-full bg-transparent outline-none"
-                  />
-                </div>
-
-                {meta.touchedInputs.cardNumber &&
-                  meta.erroredInputs.cardNumber && (
-                    <p className="text-xs text-red-600">
-                      {meta.erroredInputs.cardNumber}
-                    </p>
-                  )}
-              </label>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-1">
-                  <span className="text-sm font-medium text-stone-700">
-                    Gildistími
-                  </span>
-
-                  <input
-                    {...getExpiryDateProps()}
-                    placeholder="12/30"
-                    className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-                  />
-
-                  {meta.touchedInputs.expiryDate &&
-                    meta.erroredInputs.expiryDate && (
-                      <p className="text-xs text-red-600">
-                        {meta.erroredInputs.expiryDate}
-                      </p>
-                    )}
-                </label>
-
-                <label className="block space-y-1">
-                  <span className="text-sm font-medium text-stone-700">
-                    CVC
-                  </span>
-
-                  <input
-                    {...getCVCProps()}
-                    placeholder="123"
-                    maxLength={3}
-                    className="w-full rounded-lg border border-stone-300 px-3 py-2 outline-none focus:border-stone-950"
-                  />
-                  {meta.touchedInputs.cvc && meta.erroredInputs.cvc && (
-                    <p className="text-xs text-red-600">
-                      {meta.erroredInputs.cvc}
-                    </p>
-                  )}
-                </label>
-              </div>
-            </div>
-          </div>
+          <FakePaymentSection
+            meta={meta}
+            getCardNumberProps={getCardNumberProps}
+            getExpiryDateProps={getExpiryDateProps}
+            getCVCProps={getCVCProps}
+          />
           <button
             type="submit"
             disabled={isSubmitting}
@@ -352,45 +212,11 @@ export function CheckoutPage() {
             {isSubmitting ? "Klára pöntun..." : "Staðfesta gervigreiðslu"}
           </button>
         </form>
-
-        <aside className="h-fit rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-stone-950">
-            Pöntunaryfirlit
-          </h2>
-
-          <div className="mt-5 space-y-4 border-b border-stone-200 pb-5">
-            {items.map((item) => (
-              <div key={item.id} className="flex justify-between gap-4 text-sm">
-                <div>
-                  <p className="font-medium text-stone-950">
-                    {item.product.name}
-                  </p>
-                  <p className="text-stone-500">Magn: {item.quantity}</p>
-                </div>
-
-                <p className="font-medium text-stone-950">
-                  {(
-                    (item.product.price_cents / 100) *
-                    item.quantity
-                  ).toLocaleString("is-IS")}{" "}
-                  kr.
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 space-y-3">
-            <div className="flex justify-between text-sm text-stone-600">
-              <span>Samtals magn</span>
-              <span>{totalQuantity}</span>
-            </div>
-
-            <div className="flex justify-between text-lg font-semibold text-stone-950">
-              <span>Samtals</span>
-              <span>{(totalCents / 100).toLocaleString("is-IS")} kr.</span>
-            </div>
-          </div>
-        </aside>
+        <OrderSummary
+          cartItems={items}
+          totalQuantity={totalQuantity}
+          totalPrice={totalCents}
+        />
       </div>
     </main>
   );
