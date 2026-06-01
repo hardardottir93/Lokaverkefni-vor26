@@ -3,6 +3,10 @@ import { useMemo, useState } from "react";
 import { ProductCard } from "../features/products/components/ProductCard";
 import { useCategories } from "../features/products/hooks/useCategories";
 import { useProducts } from "../features/products/hooks/useProducts";
+import type {
+  Product,
+  ProductVariant,
+} from "../features/products/model/product";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
 
@@ -29,34 +33,64 @@ export function ProductsPage() {
   const [showOnlyInStock, setShowOnlyInStock] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  type ProductListItem = {
+    product: Product;
+    variant: ProductVariant | null;
+  };
+
   const filteredProducts = useMemo(() => {
-    let nextProducts = [...products];
+    const productListItems = products.flatMap<ProductListItem>((product) => {
+      const variants = product.product_variants ?? [];
+
+      if (variants.length === 0) {
+        return [
+          {
+            product,
+            variant: null,
+          },
+        ];
+      }
+
+      return variants.map((variant) => ({
+        product,
+        variant,
+      }));
+    });
+
+    let nextItems = [...productListItems];
 
     if (selectedCategorySlugs.length > 0) {
-      nextProducts = nextProducts.filter((product) =>
-        selectedCategorySlugs.includes(product.categories?.slug ?? ""),
+      nextItems = nextItems.filter((item) =>
+        selectedCategorySlugs.includes(item.product.categories?.slug ?? ""),
       );
     }
 
     if (showOnlyInStock) {
-      nextProducts = nextProducts.filter((product) => product.stock > 0);
+      nextItems = nextItems.filter((item) => {
+        const stock = item.variant?.stock ?? item.product.stock;
+        return stock > 0;
+      });
     }
 
-    nextProducts.sort((a, b) => {
+    nextItems.sort((a, b) => {
+      const priceA = a.variant?.price ?? a.product.price;
+      const priceB = b.variant?.price ?? b.product.price;
+
       if (sortOption === "price-asc") {
-        return a.price - b.price;
+        return priceA - priceB;
       }
 
       if (sortOption === "price-desc") {
-        return b.price - a.price;
+        return priceB - priceA;
       }
 
       return (
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.product.created_at).getTime() -
+        new Date(a.product.created_at).getTime()
       );
     });
 
-    return nextProducts;
+    return nextItems;
   }, [products, selectedCategorySlugs, showOnlyInStock, sortOption]);
 
   function toggleCategory(slug: string) {
@@ -217,9 +251,9 @@ export function ProductsPage() {
         </div>
       ) : (
         <ul className="grid list-none gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <li key={product.id}>
-              <ProductCard product={product} />
+          {filteredProducts.map((item) => (
+            <li key={`${item.product.id}-${item.variant?.id ?? "no-variant"}`}>
+              <ProductCard product={item.product} variant={item.variant} />
             </li>
           ))}
         </ul>

@@ -1,18 +1,42 @@
 import { useNavigate } from "react-router-dom";
-import type { Product } from "../model/product";
+import type { Product, ProductVariant } from "../model/product";
 import { useAddToCart } from "../../cart/hooks/useAddToCart";
 
 type ProductCardProps = {
   product: Product;
+  variant?: ProductVariant | null;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, variant = null }: ProductCardProps) {
   const navigate = useNavigate();
   const { addToCart, isAddingToCart } = useAddToCart();
-  const isInStock = product.stock > 0;
+
   const hasVariants = (product.product_variants?.length ?? 0) > 0;
+  const isVariantCard = Boolean(variant);
+
+  const variantName = variant?.color_name ?? variant?.size ?? variant?.name;
+
+  const displayName = variantName
+    ? `${product.name} - ${variantName}`
+    : product.name;
+
+  const productImageUrl =
+    variant?.image_url ??
+    product.image_url ??
+    product.product_variants?.find((currentVariant) => currentVariant.image_url)
+      ?.image_url ??
+    null;
+
+  const stock = variant?.stock ?? product.stock;
+  const price = variant?.price ?? product.price;
+  const isInStock = stock > 0;
 
   function handleCardClick() {
+    if (variant?.id) {
+      navigate(`/products/${product.id}?variant=${variant.id}`);
+      return;
+    }
+
     navigate(`/products/${product.id}`);
   }
 
@@ -22,10 +46,10 @@ export function ProductCard({ product }: ProductCardProps) {
       className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-        {product.image_url ? (
+        {productImageUrl ? (
           <img
-            src={product.image_url}
-            alt={product.name}
+            src={productImageUrl}
+            alt={displayName}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
@@ -41,7 +65,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
-          <h2 className="text-lg font-bold text-stone-950">{product.name}</h2>
+          <h2 className="text-lg font-bold text-stone-950">{displayName}</h2>
 
           <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-600">
             {product.description}
@@ -51,7 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="mt-auto flex items-center justify-between gap-4">
           <div>
             <p className="text-xl font-bold text-stone-950">
-              {product.price.toLocaleString("is-IS")} kr.
+              {price.toLocaleString("is-IS")} kr.
             </p>
 
             <p
@@ -59,13 +83,13 @@ export function ProductCard({ product }: ProductCardProps) {
                 isInStock ? "text-emerald-700" : "text-red-600"
               }`}
             >
-              {isInStock ? `${product.stock} á lager` : "Uppselt"}
+              {isInStock ? `${stock} á lager` : "Uppselt"}
             </p>
           </div>
 
-          {hasVariants ? (
+          {hasVariants && !isVariantCard ? (
             <span className="rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-950 transition group-hover:border-stone-950">
-              Velja lit
+              Velja
             </span>
           ) : (
             <button
@@ -74,12 +98,16 @@ export function ProductCard({ product }: ProductCardProps) {
                 event.preventDefault();
                 event.stopPropagation();
 
-                await addToCart({ product, quantity: 1 });
+                await addToCart({
+                  product,
+                  quantity: 1,
+                  variant,
+                });
               }}
-              disabled={product.stock <= 0 || isAddingToCart}
+              disabled={!isInStock || isAddingToCart}
               className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
             >
-              {product.stock <= 0
+              {!isInStock
                 ? "Uppselt"
                 : isAddingToCart
                   ? "Bæti..."

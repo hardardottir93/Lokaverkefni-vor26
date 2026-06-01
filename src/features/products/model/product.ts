@@ -28,4 +28,5 @@ export type ProductVariant = {
   stock: number;
   price: number | null;
   created_at: string;
+  image_url: string | null;
 };

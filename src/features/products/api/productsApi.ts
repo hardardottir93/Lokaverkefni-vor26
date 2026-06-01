@@ -29,6 +29,7 @@ export async function getProducts(): Promise<Product[]> {
         sku,
         stock,
         price,
+        image_url,
         created_at
       )
     `,
@@ -64,6 +65,7 @@ export async function getProductById(id: string) {
         sku,
         stock,
         price,
+        image_url,
         created_at
       )
     `,

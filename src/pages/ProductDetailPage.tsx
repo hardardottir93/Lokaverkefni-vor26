@@ -45,6 +45,7 @@ export function ProductDetailPage() {
   const activeStock = selectedVariant ? selectedVariant.stock : product.stock;
   const activePrice = selectedVariant?.price ?? product.price;
   const isInStock = activeStock > 0;
+  const activeImageUrl = selectedVariant?.image_url ?? product.image_url;
 
   function decreaseQuantity() {
     setQuantity((currentQuantity) => Math.max(1, currentQuantity - 1));
@@ -116,10 +117,14 @@ export function ProductDetailPage() {
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2">
         <div className="overflow-hidden rounded-2xl bg-gray-100">
-          {product.image_url ? (
+          {activeImageUrl ? (
             <img
-              src={product.image_url}
-              alt={product.name}
+              src={activeImageUrl}
+              alt={
+                selectedVariant
+                  ? `${product.name} - ${selectedVariant.color_name ?? selectedVariant.name}`
+                  : product.name
+              }
               className="h-full w-full object-cover"
             />
           ) : (
