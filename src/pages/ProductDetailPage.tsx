@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { syncUserCart } from "../features/cart/api/cartSyncApi";
@@ -15,20 +15,24 @@ export function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartMessage, setCartMessage] = useState("");
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    null,
-  );
 
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const variants = product?.product_variants ?? [];
+  const variants = useMemo(
+    () => product?.product_variants ?? [],
+    [product?.product_variants],
+  );
+
   const hasVariants = variants.length > 0;
 
-  useEffect(() => {
-    if (variants.length > 0 && !selectedVariant) {
-      setSelectedVariant(variants[0]);
-    }
-  }, [variants, selectedVariant]);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
+
+  const selectedVariant =
+    variants.find((variant) => variant.id === selectedVariantId) ??
+    variants[0] ??
+    null;
 
   if (isLoading) {
     return <p className="p-6">Sæki vöru...</p>;
@@ -58,7 +62,7 @@ export function ProductDetailPage() {
   }
 
   function handleSelectVariant(variant: ProductVariant) {
-    setSelectedVariant(variant);
+    setSelectedVariantId(variant.id);
     setQuantity(1);
     setCartMessage("");
   }

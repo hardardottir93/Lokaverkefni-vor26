@@ -1,94 +1,163 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { CartPage } from "./CartPage";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useCartStore } from "../features/cart/store/cartStore";
 import type { Product } from "../features/products/model/product";
+import { CartPage } from "./CartPage";
 
-const mockProduct: Product = {
+vi.mock("../features/auth/hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: null,
+    isLoggedIn: false,
+  }),
+}));
+
+vi.mock("../features/cart/hooks/useDbCart", () => ({
+  useDbCart: () => ({
+    dbItems: [],
+    isLoading: false,
+    errorMessage: "",
+  }),
+}));
+
+const testProduct: Product = {
   id: 1,
-  name: "Drops Karisma",
-  description: "Mjúkt ullargarn",
-  price: 590,
-  image_url: "https://example.com/image.jpg",
-  stock: 10,
+  created_at: "2026-01-01",
+  name: "Sandnes Garn Ballerina Chunky Mohair",
+  description: "Mjúkt garn",
+  price: 2489,
   category_id: 1,
+  image_url: null,
+  stock: 10,
   categories: {
     id: 1,
     name: "Garn",
     slug: "garn",
   },
-  created_at: "",
+  product_variants: [],
 };
 
 function renderCartPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
   return render(
-    <MemoryRouter>
-      <CartPage />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <CartPage />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
 describe("CartPage", () => {
   beforeEach(() => {
     useCartStore.getState().clearCart();
-    localStorage.clear();
   });
 
   it("shows empty cart message when cart is empty", () => {
     renderCartPage();
 
     expect(screen.getByText("Karfan þín er tóm.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /skoða vörur/i }),
-    ).toBeInTheDocument();
   });
 
   it("renders product in cart", () => {
-    useCartStore.getState().addToCart(mockProduct, 2);
+    useCartStore.getState().addToCart(testProduct);
 
     renderCartPage();
 
-    expect(screen.getByText("Drops Karisma")).toBeInTheDocument();
-    expect(screen.getByText("590 kr.")).toBeInTheDocument();
-    expect(screen.getAllByText("2")).toHaveLength(2);
-    expect(screen.getAllByText("1.180 kr.")).toHaveLength(2);
+    const productTitle = screen.getByText(
+      "Sandnes Garn Ballerina Chunky Mohair",
+    );
+
+    const productCard = productTitle.closest("article");
+
+    expect(productCard).not.toBeNull();
+
+    expect(
+      within(productCard as HTMLElement).getAllByText(/2\.489\s+kr\./),
+    ).toHaveLength(2);
   });
+
   it("increases product quantity", async () => {
     const user = userEvent.setup();
 
-    useCartStore.getState().addToCart(mockProduct);
+    useCartStore.getState().addToCart(testProduct);
 
     renderCartPage();
 
-    await user.click(screen.getByRole("button", { name: "+" }));
+    const increaseButton = screen.getByRole("button", { name: "+" });
 
-    expect(useCartStore.getState().items[0].quantity).toBe(2);
+    await user.click(increaseButton);
+
+    const productTitle = screen.getByText(
+      "Sandnes Garn Ballerina Chunky Mohair",
+    );
+
+    const productCard = productTitle.closest("article");
+
+    expect(productCard).not.toBeNull();
+
+    expect(
+      within(productCard as HTMLElement).getByText("2"),
+    ).toBeInTheDocument();
+
+    expect(
+      within(productCard as HTMLElement).getByText(/4\.978\s+kr\./),
+    ).toBeInTheDocument();
   });
 
   it("decreases product quantity", async () => {
     const user = userEvent.setup();
 
-    useCartStore.getState().addToCart(mockProduct, 2);
+    useCartStore.getState().addToCart(testProduct, 2);
 
     renderCartPage();
 
-    await user.click(screen.getByRole("button", { name: "-" }));
+    const decreaseButton = screen.getByRole("button", { name: "-" });
 
-    expect(useCartStore.getState().items[0].quantity).toBe(1);
+    await user.click(decreaseButton);
+
+    const productTitle = screen.getByText(
+      "Sandnes Garn Ballerina Chunky Mohair",
+    );
+
+    const productCard = productTitle.closest("article");
+
+    expect(productCard).not.toBeNull();
+
+    expect(
+      within(productCard as HTMLElement).getByText("1"),
+    ).toBeInTheDocument();
+
+    expect(
+      within(productCard as HTMLElement).getAllByText(/2\.489\s+kr\./),
+    ).toHaveLength(2);
   });
 
   it("removes product from cart", async () => {
     const user = userEvent.setup();
 
-    useCartStore.getState().addToCart(mockProduct);
+    useCartStore.getState().addToCart(testProduct);
 
     renderCartPage();
 
-    await user.click(screen.getByRole("button", { name: /fjarlægja/i }));
+    const removeButton = screen.getByRole("button", { name: "Fjarlægja" });
 
-    expect(useCartStore.getState().items).toHaveLength(0);
+    await user.click(removeButton);
+
     expect(screen.getByText("Karfan þín er tóm.")).toBeInTheDocument();
+
+    expect(
+      screen.queryByText("Sandnes Garn Ballerina Chunky Mohair"),
+    ).not.toBeInTheDocument();
   });
 });

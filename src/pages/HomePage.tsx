@@ -24,7 +24,7 @@ export function HomePage() {
 
   return (
     <main>
-      <section className="relative min-h-[620px] overflow-hidden bg-stone-100">
+      <section className="relative min-h-[155] overflow-hidden bg-stone-100">
         <div className="absolute inset-0">
           <img
             src="/images/yarn.jpg"
@@ -34,7 +34,7 @@ export function HomePage() {
           <div className="absolute inset-0 bg-black/30" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[620px] max-w-6xl items-center px-4">
+        <div className="relative mx-auto flex min-h-[155] max-w-6xl items-center px-4">
           <div className="max-w-xl text-white">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.35em]">
               Garn · Prjónar · Uppskriftir
@@ -143,7 +143,7 @@ export function HomePage() {
                 <Link
                   key={category.id}
                   to={`/products?category=${category.slug}`}
-                  className={`group relative min-h-56 overflow-hidden rounded-[1.75rem] bg-gradient-to-br ${style.className} p-5 shadow-sm ring-1 ring-stone-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:last:col-span-2 sm:last:mx-auto sm:last:w-full lg:col-span-2 lg:[&:nth-last-child(-n+2)]:col-span-3`}
+                  className={`group relative min-h-56 overflow-hidden rounded-[1.75rem] bg-linear-to-br ${style.className} p-5 shadow-sm ring-1 ring-stone-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:last:col-span-2 sm:last:mx-auto sm:last:w-full lg:col-span-2 lg:nth-last-[-n+2]:col-span-3`}
                 >
                   <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/50 transition duration-300 group-hover:scale-125" />
                   <div className="absolute -bottom-10 -left-10 h-28 w-28 rounded-full bg-white/40" />
@@ -178,7 +178,7 @@ export function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="rounded-[2rem] bg-stone-950 px-6 py-12 text-center text-white sm:px-10">
+        <div className="rounded-4xl bg-stone-950 px-6 py-12 text-center text-white sm:px-10">
           <p className="text-sm font-semibold uppercase tracking-[0.28em] text-stone-400">
             Tilbúin að byrja?
           </p>

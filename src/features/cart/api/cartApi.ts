@@ -14,7 +14,6 @@ export type SupabaseCartItem = {
     slug: string;
     description: string | null;
     price: number;
-    price_cents: number;
     currency: string;
     stock: number;
     stock_quantity: number;
@@ -68,7 +67,6 @@ export async function getCartItemsForUser(user: User) {
       slug,
       description,
       price,
-      price_cents,
       currency,
       stock,
       stock_quantity,

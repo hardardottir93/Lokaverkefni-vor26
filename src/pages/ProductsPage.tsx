@@ -21,10 +21,10 @@ export function ProductsPage() {
 
   const selectedCategorySlug = searchParams.get("category") ?? undefined;
 
-  const selectedCategorySlugs = selectedCategorySlug
-    ? [selectedCategorySlug]
-    : [];
-
+  const selectedCategorySlugs = useMemo(
+    () => (selectedCategorySlug ? [selectedCategorySlug] : []),
+    [selectedCategorySlug],
+  );
   const {
     products,
     isLoading: isProductsLoading,
