@@ -142,7 +142,7 @@ export function HomePage() {
               return (
                 <Link
                   key={category.id}
-                  to="/products"
+                  to={`/products?category=${category.slug}`}
                   className={`group relative min-h-56 overflow-hidden rounded-[1.75rem] bg-gradient-to-br ${style.className} p-5 shadow-sm ring-1 ring-stone-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:last:col-span-2 sm:last:mx-auto sm:last:w-full lg:col-span-2 lg:[&:nth-last-child(-n+2)]:col-span-3`}
                 >
                   <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/50 transition duration-300 group-hover:scale-125" />

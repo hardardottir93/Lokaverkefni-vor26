@@ -1,8 +1,8 @@
 import { supabase } from "../../../lib/supabase";
 import type { Product } from "../model/product";
 
-export async function getProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
+export async function getProducts(categorySlug?: string): Promise<Product[]> {
+  let query = supabase
     .from("products")
     .select(
       `
@@ -14,12 +14,12 @@ export async function getProducts(): Promise<Product[]> {
       category_id,
       image_url,
       stock,
-      categories (
+      categories!inner (
         id,
         name,
         slug
       ),
-       product_variants (
+      product_variants (
         id,
         product_id,
         name,
@@ -36,6 +36,12 @@ export async function getProducts(): Promise<Product[]> {
     )
     .eq("is_active", true)
     .order("created_at", { ascending: false });
+
+  if (categorySlug) {
+    query = query.eq("categories.slug", categorySlug);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);

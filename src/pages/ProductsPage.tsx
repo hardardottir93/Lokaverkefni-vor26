@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ProductCard } from "../features/products/components/ProductCard";
 import { useCategories } from "../features/products/hooks/useCategories";
@@ -10,7 +11,20 @@ import type {
 
 type SortOption = "newest" | "price-asc" | "price-desc";
 
+type ProductListItem = {
+  product: Product;
+  variant: ProductVariant | null;
+};
+
 export function ProductsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const selectedCategorySlug = searchParams.get("category");
+
+  const selectedCategorySlugs = selectedCategorySlug
+    ? [selectedCategorySlug]
+    : [];
+
   const {
     products,
     isLoading: isProductsLoading,
@@ -23,20 +37,12 @@ export function ProductsPage() {
     errorMessage: categoriesErrorMessage,
   } = useCategories();
 
-  const isLoading = isProductsLoading || isCategoriesLoading;
-  const errorMessage = productsErrorMessage || categoriesErrorMessage;
-
-  const [selectedCategorySlugs, setSelectedCategorySlugs] = useState<string[]>(
-    [],
-  );
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [showOnlyInStock, setShowOnlyInStock] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  type ProductListItem = {
-    product: Product;
-    variant: ProductVariant | null;
-  };
+  const isLoading = isProductsLoading || isCategoriesLoading;
+  const errorMessage = productsErrorMessage || categoriesErrorMessage;
 
   const filteredProducts = useMemo(() => {
     const productListItems = products.flatMap<ProductListItem>((product) => {
@@ -94,17 +100,18 @@ export function ProductsPage() {
   }, [products, selectedCategorySlugs, showOnlyInStock, sortOption]);
 
   function toggleCategory(slug: string) {
-    setSelectedCategorySlugs((currentSlugs) => {
-      if (currentSlugs.includes(slug)) {
-        return currentSlugs.filter((currentSlug) => currentSlug !== slug);
-      }
+    const isSelected = selectedCategorySlugs.includes(slug);
 
-      return [...currentSlugs, slug];
-    });
+    if (isSelected) {
+      setSearchParams({});
+      return;
+    }
+
+    setSearchParams({ category: slug });
   }
 
   function clearFilters() {
-    setSelectedCategorySlugs([]);
+    setSearchParams({});
     setShowOnlyInStock(false);
     setSortOption("newest");
   }
