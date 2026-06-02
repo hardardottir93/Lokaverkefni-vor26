@@ -19,7 +19,7 @@ type ProductListItem = {
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const selectedCategorySlug = searchParams.get("category");
+  const selectedCategorySlug = searchParams.get("category") ?? undefined;
 
   const selectedCategorySlugs = selectedCategorySlug
     ? [selectedCategorySlug]
@@ -29,7 +29,7 @@ export function ProductsPage() {
     products,
     isLoading: isProductsLoading,
     errorMessage: productsErrorMessage,
-  } = useProducts();
+  } = useProducts(selectedCategorySlug);
 
   const {
     categories,
@@ -100,9 +100,7 @@ export function ProductsPage() {
   }, [products, selectedCategorySlugs, showOnlyInStock, sortOption]);
 
   function toggleCategory(slug: string) {
-    const isSelected = selectedCategorySlugs.includes(slug);
-
-    if (isSelected) {
+    if (selectedCategorySlugs.includes(slug)) {
       setSearchParams({});
       return;
     }
