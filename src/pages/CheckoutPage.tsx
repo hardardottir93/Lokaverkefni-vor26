@@ -78,7 +78,7 @@ export function CheckoutPage() {
   }, [isLoggedIn, user, setValue]);
 
   const totalCents = items.reduce((sum, item) => {
-    return sum + item.product.price_cents * item.quantity;
+    return sum + item.product.price * item.quantity;
   }, 0);
 
   const totalQuantity = items.reduce((sum, item) => {

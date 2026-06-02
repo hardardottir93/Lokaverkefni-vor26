@@ -34,7 +34,7 @@ export async function createOrderForUser(user: User) {
   }
 
   const subtotalCents = cartItems.reduce((sum, item) => {
-    return sum + item.product.price_cents * item.quantity;
+    return sum + item.product.price * item.quantity;
   }, 0);
 
   const { data: order, error: orderError } = await supabase
@@ -59,9 +59,9 @@ export async function createOrderForUser(user: User) {
     product_id: item.product.id,
     product_name: item.product.name,
     variant_name: item.variant?.color_name ?? item.variant?.name ?? null,
-    unit_price_cents: item.product.price_cents,
+    unit_price: item.product.price,
     quantity: item.quantity,
-    line_total_cents: item.product.price_cents * item.quantity,
+    line_total_cents: item.product.price * item.quantity,
   }));
 
   const { error: orderItemsError } = await supabase
@@ -108,7 +108,7 @@ export async function getOrderById(orderId: string) {
         id,
         product_name,
         variant_name,
-        unit_price_cents,
+        unit_price,
         quantity,
         line_total_cents
       )
@@ -155,7 +155,7 @@ export async function getOrdersForUser(user: User) {
         id,
         product_name,
         variant_name,
-        unit_price_cents,
+        unit_price,
         quantity,
         line_total_cents
       )

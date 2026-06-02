@@ -6,7 +6,7 @@ type OrderItem = {
   id: string;
   product_name: string;
   variant_name: string | null;
-  unit_price_cents: number;
+  unit_price: number;
   quantity: number;
   line_total_cents: number;
 };

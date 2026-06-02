@@ -81,7 +81,7 @@ const mockCartItems = [
     product: {
       id: "product-1",
       name: "Prjónagarn",
-      price_cents: 199000,
+      price: 1990,
     },
   },
 ];

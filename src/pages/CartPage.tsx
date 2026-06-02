@@ -57,7 +57,7 @@ export function CartPage() {
 
   const totalPrice = isDbCart
     ? dbItems.reduce((sum, item) => {
-        return sum + (item.product.price_cents / 100) * item.quantity;
+        return sum + item.product.price * item.quantity;
       }, 0)
     : localItems.reduce((sum, item) => {
         return sum + item.product.price * item.quantity;
@@ -172,7 +172,7 @@ export function CartPage() {
                         )}
 
                         <p className="mt-1 text-sm text-stone-500">
-                          {(item.product.price_cents / 100).toLocaleString(
+                          {(item.product.price * item.quantity).toLocaleString(
                             "is-IS",
                           )}{" "}
                           kr.
