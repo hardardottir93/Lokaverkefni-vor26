@@ -85,7 +85,7 @@ export function CheckoutPage() {
     return sum + item.quantity;
   }, 0);
 
-  async function onSubmit(_values: CheckoutFormValues) {
+  async function onSubmit() {
     if (!user) {
       navigate("/login");
       return;
