@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "start": "serve --single --listen tcp://0.0.0.0:$PORT dist"
+    "start": "serve --single dist --listen tcp://0.0.0.0:${PORT}"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
