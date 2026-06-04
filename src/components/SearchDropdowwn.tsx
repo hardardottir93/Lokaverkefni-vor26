@@ -66,9 +66,12 @@ export function SearchDropdown({ onClose }: SearchDropdownProps) {
   }
 
   return (
-    <div className="absolute left-0 top-full z-50 w-full border-t border-stone-200 bg-white shadow-xl">
+    <div className="absolute left-1/2 top-full z-50 w-full max-w-3xl -translate-x-1/2 px-4">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <form onSubmit={handleSearch}>
+        <form
+          onSubmit={handleSearch}
+          className="bg-white rounded-2xl shadow-xl px-6 py-4"
+        >
           <input
             autoFocus
             type="search"

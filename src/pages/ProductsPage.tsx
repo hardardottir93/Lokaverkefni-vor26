@@ -19,12 +19,14 @@ type ProductListItem = {
 export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const searchQuery = searchParams.get("search")?.trim().toLowerCase() ?? "";
   const selectedCategorySlug = searchParams.get("category") ?? undefined;
 
   const selectedCategorySlugs = useMemo(
     () => (selectedCategorySlug ? [selectedCategorySlug] : []),
     [selectedCategorySlug],
   );
+
   const {
     products,
     isLoading: isProductsLoading,
@@ -71,6 +73,20 @@ export function ProductsPage() {
       );
     }
 
+    if (searchQuery) {
+      nextItems = nextItems.filter((item) => {
+        const product = item.product;
+
+        return (
+          product.name.toLowerCase().includes(searchQuery) ||
+          product.description?.toLowerCase().includes(searchQuery) ||
+          product.categories?.name.toLowerCase().includes(searchQuery) ||
+          item.variant?.name.toLowerCase().includes(searchQuery) ||
+          item.variant?.color_name?.toLowerCase().includes(searchQuery)
+        );
+      });
+    }
+
     if (showOnlyInStock) {
       nextItems = nextItems.filter((item) => {
         const stock = item.variant?.stock ?? item.product.stock;
@@ -97,7 +113,13 @@ export function ProductsPage() {
     });
 
     return nextItems;
-  }, [products, selectedCategorySlugs, showOnlyInStock, sortOption]);
+  }, [
+    products,
+    selectedCategorySlugs,
+    searchQuery,
+    showOnlyInStock,
+    sortOption,
+  ]);
 
   function toggleCategory(slug: string) {
     if (selectedCategorySlugs.includes(slug)) {
@@ -116,6 +138,7 @@ export function ProductsPage() {
 
   const hasActiveFilters =
     selectedCategorySlugs.length > 0 ||
+    searchQuery.length > 0 ||
     showOnlyInStock ||
     sortOption !== "newest";
 

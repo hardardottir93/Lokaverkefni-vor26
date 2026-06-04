@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-stone-200 bg-stone-950 text-stone-100">
-      <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
+      <div className="mx-auto grid max-w-400 gap-10 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
         <div>
           <h2 className="text-2xl font-light uppercase tracking-[0.16em]">
             Prjónabúðin
@@ -30,8 +30,8 @@ export function Footer() {
             <Link to="/cart" className="transition hover:text-white">
               Karfa
             </Link>
-            <Link to="/checkout" className="transition hover:text-white">
-              Greiðsla
+            <Link to="/profile" className="transition hover:text-white">
+              Mín síða
             </Link>
           </nav>
         </div>
@@ -48,15 +48,15 @@ export function Footer() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-stone-400">
-            Þetta er lokaverkefni. Engar raunverulegar greiðslur fara fram.
+            Lokaverkefni - NTV - Vor 26.
           </p>
         </div>
       </div>
 
       <div className="border-t border-stone-800">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-4 py-4 text-xs text-stone-400 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+        <div className="mx-auto flex max-w-400 flex-col gap-2 px-4 py-4 text-xs text-stone-400 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <p>© {new Date().getFullYear()} Prjónabúðin</p>
-          <p>Lokaverkefni · React · TypeScript · Supabase</p>
+          <p>Lokaverkefni</p>
         </div>
       </div>
     </footer>
