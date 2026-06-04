@@ -9,8 +9,9 @@ export function useAddToCart() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   async function handleAddToCart(item: CartItem) {
+    addToCart(item.product, item.quantity, item.variant ?? undefined);
+
     if (!isLoggedIn || !user) {
-      addToCart(item.product, item.quantity);
       return;
     }
 

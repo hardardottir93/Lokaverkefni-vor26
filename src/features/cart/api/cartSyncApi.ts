@@ -10,23 +10,45 @@ export async function getOrCreateActiveCart(params: {
 }) {
   const { shopId, customerId } = params;
 
-  const { data: existingCart, error: fetchError } = await supabase
+  const { data: existingCarts, error: fetchError } = await supabase
     .from("carts")
     .select("*")
     .eq("shop_id", shopId)
     .eq("customer_id", customerId)
-    .eq("status", "active")
-    .maybeSingle();
+    .limit(1);
 
   if (fetchError) {
     throw fetchError;
   }
 
+  const existingCart = existingCarts?.[0];
+
   if (existingCart) {
-    return existingCart;
+    if (existingCart.status === "active") {
+      return existingCart;
+    }
+
+    const { data: updatedCarts, error: updateError } = await supabase
+      .from("carts")
+      .update({ status: "active" })
+      .eq("id", existingCart.id)
+      .select("*")
+      .limit(1);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    const updatedCart = updatedCarts?.[0];
+
+    if (!updatedCart) {
+      throw new Error("Cart exists, but it could not be updated.");
+    }
+
+    return updatedCart;
   }
 
-  const { data, error } = await supabase
+  const { data: insertedCarts, error: insertError } = await supabase
     .from("carts")
     .insert({
       shop_id: shopId,
@@ -34,14 +56,61 @@ export async function getOrCreateActiveCart(params: {
       status: "active",
     })
     .select("*")
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
 
-  if (error) {
-    throw error;
+  if (!insertError) {
+    const insertedCart = insertedCarts?.[0];
+
+    if (!insertedCart) {
+      throw new Error("Cart was created but no cart was returned.");
+    }
+
+    return insertedCart;
   }
 
-  return data;
+  if (insertError.code !== "23505") {
+    throw insertError;
+  }
+
+  const { data: cartsAfterConflict, error: conflictFetchError } = await supabase
+    .from("carts")
+    .select("*")
+    .eq("shop_id", shopId)
+    .eq("customer_id", customerId)
+    .limit(1);
+
+  if (conflictFetchError) {
+    throw conflictFetchError;
+  }
+
+  const cartAfterConflict = cartsAfterConflict?.[0];
+
+  if (!cartAfterConflict) {
+    throw new Error("Cart already exists, but it could not be found.");
+  }
+
+  if (cartAfterConflict.status === "active") {
+    return cartAfterConflict;
+  }
+
+  const { data: updatedCarts, error: updateError } = await supabase
+    .from("carts")
+    .update({ status: "active" })
+    .eq("id", cartAfterConflict.id)
+    .select("*")
+    .limit(1);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  const updatedCart = updatedCarts?.[0];
+
+  if (!updatedCart) {
+    throw new Error("Cart exists after conflict, but it could not be updated.");
+  }
+
+  return updatedCart;
 }
 
 export async function syncLocalCartToSupabase(params: {
@@ -109,6 +178,7 @@ export async function syncLocalCartToSupabase(params: {
         variant_id: item.variant?.id ?? null,
         quantity: Math.min(item.quantity, stock),
       });
+
       if (error) {
         throw error;
       }

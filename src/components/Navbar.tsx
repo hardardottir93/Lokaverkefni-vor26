@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { Search, ShoppingBag, User, X } from "lucide-react";
 import { SearchDropdown } from "./SearchDropdowwn";
 import { useAuth } from "../features/auth/hooks/useAuth";
-import { useSyncCartOnLogin } from "../features/cart/hooks/useSyncCartOnLogin";
 import { useCartCount } from "../features/cart/hooks/useCartCount";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -13,7 +12,6 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  useSyncCartOnLogin();
 
   const { isLoggedIn } = useAuth();
 
@@ -22,7 +20,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white">
       <div className="relative">
-        <nav className="mx-auto flex max-w-[1600px] flex-col px-4 py-4 sm:px-6 lg:px-8">
+        <nav className="mx-auto flex max-w-400 flex-col px-4 py-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-3">
             <div className="hidden items-center gap-6 lg:flex xl:gap-9">
               <NavLink to="/" className={navLinkClass}>
