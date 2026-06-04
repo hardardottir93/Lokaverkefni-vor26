@@ -59,7 +59,7 @@ export async function createOrderForUser(user: User) {
     product_id: item.product.id,
     product_name: item.product.name,
     variant_name: item.variant?.color_name ?? item.variant?.name ?? null,
-    unit_price: item.product.price,
+    unit_price_cents: item.product.price,
     quantity: item.quantity,
     line_total_cents: item.product.price * item.quantity,
   }));
@@ -108,7 +108,7 @@ export async function getOrderById(orderId: string) {
         id,
         product_name,
         variant_name,
-        unit_price,
+        unit_price_cents,
         quantity,
         line_total_cents
       )
@@ -155,7 +155,7 @@ export async function getOrdersForUser(user: User) {
         id,
         product_name,
         variant_name,
-        unit_price,
+        unit_price_cents,
         quantity,
         line_total_cents
       )
@@ -169,5 +169,5 @@ export async function getOrdersForUser(user: User) {
     throw error;
   }
 
-  return data;
+  return data ?? [];
 }
