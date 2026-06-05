@@ -77,8 +77,9 @@ export function ProductDetailPage() {
       return;
     }
 
+    addToCart(product, quantity, selectedVariant);
+
     if (!isLoggedIn || !user) {
-      addToCart(product, quantity, selectedVariant);
       setCartMessage(
         selectedVariant
           ? `${selectedVariant.name} var bætt í körfu.`

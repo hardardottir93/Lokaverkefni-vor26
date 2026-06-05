@@ -91,81 +91,50 @@ export function HomePage() {
             Engir flokkar fundust.
           </p>
         ) : (
-          <div className="mx-auto grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="mx-auto grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => {
-              const categoryStyles: Record<
-                string,
-                {
-                  icon: string;
-                  description: string;
-                  className: string;
-                }
-              > = {
-                garn: {
-                  icon: "🧶",
-                  description:
-                    "Mjúkt garn í fallegum litum fyrir peysur, húfur og smærri verkefni.",
-                  className: "from-amber-50 to-orange-100",
-                },
-                prjonar: {
-                  icon: "🪡",
-                  description:
-                    "Prjónar í vinsælum stærðum fyrir fjölbreytt handavinnuverkefni.",
-                  className: "from-stone-50 to-stone-200",
-                },
-                heklunalar: {
-                  icon: "✨",
-                  description:
-                    "Heklunálar fyrir tuskur, teppi, dúkkur og skapandi hekl.",
-                  className: "from-rose-50 to-pink-100",
-                },
-                uppskriftir: {
-                  icon: "📖",
-                  description:
-                    "Einfaldar og fallegar uppskriftir fyrir næsta verkefni.",
-                  className: "from-sky-50 to-blue-100",
-                },
-                aukahlutir: {
-                  icon: "🎀",
-                  description:
-                    "Allt litla dótið sem gerir handavinnuna þægilegri og skemmtilegri.",
-                  className: "from-emerald-50 to-teal-100",
-                },
+              const categoryDescriptions: Record<string, string> = {
+                garn: "Mjúkt garn í fallegum litum fyrir peysur, húfur og smærri verkefni.",
+                prjonar:
+                  "Prjónar í vinsælum stærðum fyrir fjölbreytt handavinnuverkefni.",
+                heklunalar:
+                  "Heklunálar fyrir tuskur, teppi, dúkkur og skapandi hekl.",
+                uppskriftir:
+                  "Einfaldar og fallegar uppskriftir fyrir næsta verkefni.",
+                aukahlutir:
+                  "Allt litla dótið sem gerir handavinnuna þægilegri og skemmtilegri.",
               };
 
-              const style = categoryStyles[category.slug] ?? {
-                icon: "🧵",
-                description: "Skoða vörur í þessum flokki.",
-                className: "from-stone-50 to-stone-100",
-              };
+              const description =
+                categoryDescriptions[category.slug] ??
+                "Skoða vörur í þessum flokki.";
 
               return (
                 <Link
                   key={category.id}
                   to={`/products?category=${category.slug}`}
-                  className={`group relative min-h-56 overflow-hidden rounded-[1.75rem] bg-linear-to-br ${style.className} p-5 shadow-sm ring-1 ring-stone-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:last:col-span-2 sm:last:mx-auto sm:last:w-full lg:col-span-2 lg:nth-last-[-n+2]:col-span-3`}
+                  className="group overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-stone-400 hover:shadow-md"
                 >
-                  <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/50 transition duration-300 group-hover:scale-125" />
-                  <div className="absolute -bottom-10 -left-10 h-28 w-28 rounded-full bg-white/40" />
+                  <div className="h-1 bg-stone-950" />
 
-                  <div className="relative flex h-full flex-col">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-3xl shadow-sm">
-                      {style.icon}
-                    </div>
+                  <div className="flex min-h-56 flex-col justify-between p-6">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-[0.25em] text-stone-400">
+                        Flokkur
+                      </p>
 
-                    <div className="mt-6">
-                      <h3 className="text-xl font-semibold text-stone-950">
+                      <h3 className="mt-4 text-2xl font-semibold text-stone-950">
                         {category.name}
                       </h3>
 
                       <p className="mt-3 text-sm leading-6 text-stone-600">
-                        {style.description}
+                        {description}
                       </p>
                     </div>
 
-                    <span className="mt-auto pt-6 text-sm font-semibold text-stone-950">
-                      Skoða vörur{" "}
-                      <span className="inline-block transition group-hover:translate-x-1">
+                    <span className="mt-8 inline-flex items-center text-sm font-semibold text-stone-950">
+                      Skoða vörur
+                      <span className="ml-2 transition group-hover:translate-x-1">
                         →
                       </span>
                     </span>

@@ -39,7 +39,8 @@ export function CartPage() {
         return sum + price * item.quantity;
       }, 0)
     : localItems.reduce((sum, item) => {
-        return sum + item.product.price * item.quantity;
+        const price = item.variant?.price ?? item.product.price;
+        return sum + price * item.quantity;
       }, 0);
 
   const totalQuantity = isDbCart
@@ -63,6 +64,8 @@ export function CartPage() {
     }
 
     try {
+      clearCart();
+
       await Promise.all(dbItems.map((item) => removeCartItem(item.id)));
       await refreshDbCart();
     } catch (error) {
@@ -72,12 +75,14 @@ export function CartPage() {
     }
   }
 
-  async function handleRemoveDbItem(cartItemId: string) {
+  async function handleRemoveDbItem(item: (typeof dbItems)[number]) {
     setErrorMessage("");
-    setUpdatingItemId(cartItemId);
+    setUpdatingItemId(item.id);
 
     try {
-      await removeCartItem(cartItemId);
+      removeFromCart(item.product.id, item.variant?.id ?? null);
+
+      await removeCartItem(item.id);
       await refreshDbCart();
     } catch (error) {
       setErrorMessage(
@@ -90,17 +95,20 @@ export function CartPage() {
     }
   }
 
-  async function handleDecreaseDbItem(cartItemId: string, quantity: number) {
+  async function handleDecreaseDbItem(item: (typeof dbItems)[number]) {
     setErrorMessage("");
-    setUpdatingItemId(cartItemId);
+    setUpdatingItemId(item.id);
 
     try {
-      if (quantity <= 1) {
-        await removeCartItem(cartItemId);
+      if (item.quantity <= 1) {
+        removeFromCart(item.product.id, item.variant?.id ?? null);
+        await removeCartItem(item.id);
       } else {
+        decreaseQuantity(item.product.id, item.variant?.id ?? null);
+
         await updateCartItemQuantity({
-          cartItemId,
-          quantity: quantity - 1,
+          cartItemId: item.id,
+          quantity: item.quantity - 1,
         });
       }
 
@@ -115,19 +123,20 @@ export function CartPage() {
   }
 
   async function handleIncreaseDbItem(params: {
-    cartItemId: string;
-    quantity: number;
+    item: (typeof dbItems)[number];
     stock: number;
   }) {
-    const { cartItemId, quantity, stock } = params;
+    const { item, stock } = params;
 
     setErrorMessage("");
-    setUpdatingItemId(cartItemId);
+    setUpdatingItemId(item.id);
 
     try {
+      increaseQuantity(item.product.id, item.variant?.id ?? null);
+
       await updateCartItemQuantity({
-        cartItemId,
-        quantity: Math.min(quantity + 1, stock),
+        cartItemId: item.id,
+        quantity: Math.min(item.quantity + 1, stock),
       });
 
       await refreshDbCart();
@@ -206,7 +215,7 @@ export function CartPage() {
 
                 return (
                   <article
-                    key={item.id}
+                    key={`db-${item.id}`}
                     className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto]"
                   >
                     <div className="h-32 overflow-hidden rounded-xl bg-stone-100">
@@ -230,9 +239,7 @@ export function CartPage() {
 
                       {item.variant && (
                         <p className="mt-1 text-sm text-stone-500">
-                          {item.variant.color_name ??
-                            item.variant.size ??
-                            item.variant.name}
+                          {item.variant.color_name ?? item.variant.name}
                         </p>
                       )}
 
@@ -248,7 +255,7 @@ export function CartPage() {
 
                       <button
                         type="button"
-                        onClick={() => handleRemoveDbItem(item.id)}
+                        onClick={() => handleRemoveDbItem(item)}
                         disabled={updatingItemId === item.id}
                         className="mt-4 text-sm text-stone-400 hover:text-red-600 disabled:cursor-not-allowed disabled:text-stone-300"
                       >
@@ -260,9 +267,7 @@ export function CartPage() {
                       <div className="flex overflow-hidden rounded-full border border-stone-300">
                         <button
                           type="button"
-                          onClick={() =>
-                            handleDecreaseDbItem(item.id, item.quantity)
-                          }
+                          onClick={() => handleDecreaseDbItem(item)}
                           disabled={updatingItemId === item.id}
                           className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
                         >
@@ -277,8 +282,7 @@ export function CartPage() {
                           type="button"
                           onClick={() =>
                             handleIncreaseDbItem({
-                              cartItemId: item.id,
-                              quantity: item.quantity,
+                              item,
                               stock,
                             })
                           }
@@ -298,87 +302,119 @@ export function CartPage() {
                   </article>
                 );
               })
-            : localItems.map((item) => (
-                <article
-                  key={item.product.id}
-                  className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto]"
-                >
-                  <div className="h-32 overflow-hidden rounded-xl bg-stone-100">
-                    {item.product.image_url ? (
-                      <img
-                        src={item.product.image_url}
-                        alt={item.product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-stone-400">
-                        Engin mynd
-                      </div>
-                    )}
-                  </div>
+            : localItems.map((item) => {
+                const price = item.variant?.price ?? item.product.price;
+                const stock = item.variant?.stock ?? item.product.stock;
 
-                  <div>
-                    <h2 className="font-semibold text-stone-950">
-                      {item.product.name}
-                    </h2>
-
-                    <p className="mt-1 text-sm text-stone-500">
-                      {item.product.price.toLocaleString("is-IS")} kr.
-                    </p>
-
-                    {item.quantity >= item.product.stock && (
-                      <p className="mt-2 text-xs text-amber-700">
-                        Hámarksfjöldi á lager valinn
-                      </p>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => removeFromCart(item.product.id)}
-                      className="mt-4 text-sm text-stone-400 hover:text-red-600"
-                    >
-                      Fjarlægja
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:justify-between">
-                    <div className="flex overflow-hidden rounded-full border border-stone-300">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.quantity <= 1) {
-                            removeFromCart(item.product.id);
-                            return;
+                return (
+                  <article
+                    key={`local-${item.product.id}-${
+                      item.variant?.id ?? "no-variant"
+                    }`}
+                    className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto]"
+                  >
+                    <div className="h-32 overflow-hidden rounded-xl bg-stone-100">
+                      {(item.variant?.image_url ?? item.product.image_url) ? (
+                        <img
+                          src={
+                            item.variant?.image_url ??
+                            item.product.image_url ??
+                            ""
                           }
+                          alt={item.product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sm text-stone-400">
+                          Engin mynd
+                        </div>
+                      )}
+                    </div>
 
-                          decreaseQuantity(item.product.id);
-                        }}
-                        className="px-4 py-2 text-stone-700 hover:bg-stone-100"
-                      >
-                        -
-                      </button>
+                    <div>
+                      <h2 className="font-semibold text-stone-950">
+                        {item.product.name}
+                      </h2>
 
-                      <span className="px-4 py-2 text-sm">{item.quantity}</span>
+                      {item.variant && (
+                        <p className="mt-1 text-sm text-stone-500">
+                          {item.variant.color_name ?? item.variant.name}
+                        </p>
+                      )}
+
+                      <p className="mt-1 text-sm text-stone-500">
+                        {price.toLocaleString("is-IS")} kr.
+                      </p>
+
+                      {item.quantity >= stock && (
+                        <p className="mt-2 text-xs text-amber-700">
+                          Hámarksfjöldi á lager valinn
+                        </p>
+                      )}
 
                       <button
                         type="button"
-                        onClick={() => increaseQuantity(item.product.id)}
-                        disabled={item.quantity >= item.product.stock}
-                        className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
+                        onClick={() =>
+                          removeFromCart(
+                            item.product.id,
+                            item.variant?.id ?? null,
+                          )
+                        }
+                        className="mt-4 text-sm text-stone-400 hover:text-red-600"
                       >
-                        +
+                        Fjarlægja
                       </button>
                     </div>
 
-                    <p className="font-semibold text-stone-950">
-                      {(item.product.price * item.quantity).toLocaleString(
-                        "is-IS",
-                      )}{" "}
-                      kr.
-                    </p>
-                  </div>
-                </article>
-              ))}
+                    <div className="flex items-center gap-4 sm:flex-col sm:items-end sm:justify-between">
+                      <div className="flex overflow-hidden rounded-full border border-stone-300">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (item.quantity <= 1) {
+                              removeFromCart(
+                                item.product.id,
+                                item.variant?.id ?? null,
+                              );
+                              return;
+                            }
+
+                            decreaseQuantity(
+                              item.product.id,
+                              item.variant?.id ?? null,
+                            );
+                          }}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100"
+                        >
+                          -
+                        </button>
+
+                        <span className="px-4 py-2 text-sm">
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            increaseQuantity(
+                              item.product.id,
+                              item.variant?.id ?? null,
+                            )
+                          }
+                          disabled={item.quantity >= stock}
+                          className="px-4 py-2 text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <p className="font-semibold text-stone-950">
+                        {(price * item.quantity).toLocaleString("is-IS")} kr.
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
         </section>
 
         <aside className="h-fit rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
