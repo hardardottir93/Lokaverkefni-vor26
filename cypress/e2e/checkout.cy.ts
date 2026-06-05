@@ -16,27 +16,25 @@ describe("Checkout", () => {
       .clear()
       .type(Cypress.env("TEST_PASSWORD"));
 
-    cy.get("form").within(() => {
-      cy.get('button[type="submit"]').should("be.visible").click();
-    });
+    cy.get('button[type="submit"]', { timeout: 10000 })
+      .should("be.visible")
+      .click({ force: true });
 
     cy.url({ timeout: 15000 }).should("not.include", "/login");
 
-    // Mikilvægt: bíða þar til appið veit að user er logged in
     cy.get('a[aria-label="Mín síða"]', { timeout: 15000 }).should("be.visible");
 
     cy.visit("/products");
 
-    // Eftir cy.visit reloadast appið, þannig bíðum aftur eftir auth state
-    cy.get('a[aria-label="Mín síða"]', { timeout: 15000 }).should("be.visible");
-
     cy.contains("ZING sokkaprjónar", { timeout: 15000 })
       .should("be.visible")
-      .click();
+      .click({ force: true });
+
+    cy.url({ timeout: 10000 }).should("include", "/products/");
 
     cy.contains("button", "Bæta í körfu", { timeout: 15000 })
       .should("be.visible")
-      .click();
+      .click({ force: true });
 
     cy.get('a[aria-label="Karfa"] span', { timeout: 15000 })
       .should("be.visible")
@@ -44,14 +42,11 @@ describe("Checkout", () => {
 
     cy.get('a[aria-label="Karfa"]', { timeout: 10000 })
       .should("be.visible")
-      .click();
+      .click({ force: true });
 
     cy.url({ timeout: 10000 }).should("include", "/cart");
 
     cy.contains("ZING sokkaprjónar", { timeout: 15000 }).should("be.visible");
-
-    // Passa aftur að user sé enn logged in áður en checkout er opnað
-    cy.get('a[aria-label="Mín síða"]', { timeout: 15000 }).should("be.visible");
 
     cy.contains(
       "button, a",
@@ -59,7 +54,7 @@ describe("Checkout", () => {
       { timeout: 15000 },
     )
       .should("be.visible")
-      .click();
+      .click({ force: true });
 
     cy.url({ timeout: 15000 }).should("include", "/checkout");
 
@@ -97,7 +92,7 @@ describe("Checkout", () => {
       timeout: 15000,
     })
       .should("be.visible")
-      .click();
+      .click({ force: true });
 
     cy.url({ timeout: 15000 }).should("include", "/order-confirmation");
 

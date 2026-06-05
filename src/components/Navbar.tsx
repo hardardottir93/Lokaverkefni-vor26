@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Search, ShoppingBag, User, X } from "lucide-react";
-import { SearchDropdown } from "./SearchDropdowwn";
+import { SearchDropdown } from "./SearchDropdown";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import { useCartCount } from "../features/cart/hooks/useCartCount";
 

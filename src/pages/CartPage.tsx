@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../features/auth/hooks/useAuth";
@@ -9,10 +9,12 @@ import {
 } from "../features/cart/api/cartApi";
 import { useDbCart } from "../features/cart/hooks/useDbCart";
 import { useCartStore } from "../features/cart/store/cartStore";
+import { syncUserCart } from "../features/cart/api/cartSyncApi";
 
 export function CartPage() {
   const queryClient = useQueryClient();
   const { user, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const localItems = useCartStore((state) => state.items);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -31,9 +33,11 @@ export function CartPage() {
     errorMessage: dbCartErrorMessage,
   } = useDbCart(user);
 
-  const displayedItems = isDbCart ? dbItems : localItems;
+  const shouldUseDbCart = Boolean(isLoggedIn && user && dbItems.length > 0);
 
-  const totalPrice = isDbCart
+  const displayedItems = shouldUseDbCart ? dbItems : localItems;
+
+  const totalPrice = shouldUseDbCart
     ? dbItems.reduce((sum, item) => {
         const price = item.variant?.price ?? item.product.price;
         return sum + price * item.quantity;
@@ -43,7 +47,7 @@ export function CartPage() {
         return sum + price * item.quantity;
       }, 0);
 
-  const totalQuantity = isDbCart
+  const totalQuantity = shouldUseDbCart
     ? dbItems.reduce((sum, item) => sum + item.quantity, 0)
     : localItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -58,7 +62,7 @@ export function CartPage() {
   async function handleClearCart() {
     setErrorMessage("");
 
-    if (!isDbCart) {
+    if (!shouldUseDbCart) {
       clearCart();
       return;
     }
@@ -149,7 +153,31 @@ export function CartPage() {
     }
   }
 
-  if (isDbCart && isDbCartLoading) {
+  async function handleContinueToCheckout() {
+    setErrorMessage("");
+
+    if (isLoggedIn && user && !shouldUseDbCart && localItems.length > 0) {
+      try {
+        await syncUserCart({
+          user,
+          items: localItems,
+        });
+
+        await refreshDbCart();
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Ekki tókst að uppfæra körfu fyrir greiðslu.",
+        );
+        return;
+      }
+    }
+
+    navigate("/checkout");
+  }
+
+  if (isDbCart && isDbCartLoading && localItems.length === 0) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-10">
         <h1 className="text-3xl font-bold text-stone-950">Karfa</h1>
@@ -205,7 +233,7 @@ export function CartPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <section className="space-y-4">
-          {isDbCart
+          {shouldUseDbCart
             ? dbItems.map((item) => {
                 const price = item.variant?.price ?? item.product.price;
                 const stock =
@@ -213,15 +241,18 @@ export function CartPage() {
                   item.product.stock_quantity ??
                   item.product.stock;
 
+                const imageUrl =
+                  item.variant?.image_url ?? item.product.image_url;
+
                 return (
                   <article
                     key={`db-${item.id}`}
                     className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto]"
                   >
                     <div className="h-32 overflow-hidden rounded-xl bg-stone-100">
-                      {item.product.image_url ? (
+                      {imageUrl ? (
                         <img
-                          src={item.product.image_url}
+                          src={imageUrl}
                           alt={item.product.name}
                           className="h-full w-full object-cover"
                         />
@@ -437,12 +468,13 @@ export function CartPage() {
             </div>
           </div>
 
-          <Link
-            to="/checkout"
+          <button
+            type="button"
+            onClick={handleContinueToCheckout}
             className="mt-6 flex w-full justify-center rounded-full bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
           >
             Halda áfram
-          </Link>
+          </button>
         </aside>
       </div>
     </main>

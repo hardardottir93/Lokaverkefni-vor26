@@ -17,6 +17,7 @@ export function SearchDropdown({ onClose }: SearchDropdownProps) {
     async function fetchProducts() {
       try {
         const data = await getProducts();
+        console.log("Search products:", data);
         setProducts(data);
       } catch {
         console.error("Ekki tókst að sækja vörur fyrir leit.");
@@ -86,39 +87,48 @@ export function SearchDropdown({ onClose }: SearchDropdownProps) {
           <div className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl">
             {searchResults.length > 0 ? (
               <ul className="max-h-96 overflow-y-auto py-2">
-                {searchResults.map((product) => (
-                  <li key={product.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleProductClick(product.id)}
-                      className="flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-stone-50"
-                    >
-                      <div className="h-16 w-16 overflow-hidden rounded-xl bg-stone-100">
-                        {product.image_url ? (
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-stone-400">
-                            Engin mynd
-                          </div>
-                        )}
-                      </div>
+                {searchResults.map((product) => {
+                  const imageUrl =
+                    product.image_url ??
+                    product.product_variants?.find(
+                      (variant) => variant.image_url,
+                    )?.image_url ??
+                    null;
 
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-stone-950">
-                          {product.name}
-                        </p>
+                  return (
+                    <li key={product.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleProductClick(product.id)}
+                        className="flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-stone-50"
+                      >
+                        <div className="h-16 w-16 overflow-hidden rounded-xl bg-stone-100">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-xs text-stone-400">
+                              Engin mynd
+                            </div>
+                          )}
+                        </div>
 
-                        <p className="text-sm text-stone-500">
-                          {product.price.toLocaleString("is-IS")} kr.
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-stone-950">
+                            {product.name}
+                          </p>
+
+                          <p className="text-sm text-stone-500">
+                            {product.price.toLocaleString("is-IS")} kr.
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="px-4 py-5 text-sm text-stone-500">

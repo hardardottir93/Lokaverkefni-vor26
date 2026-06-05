@@ -28,6 +28,7 @@ export type SupabaseCartItem = {
     sku: string | null;
     stock: number;
     price: number | null;
+    image_url: string | null;
   } | null;
 };
 
@@ -80,7 +81,8 @@ export async function getCartItemsForUser(user: User) {
       size,
       sku,
       stock,
-      price
+      price,
+      image_url
     )
   `,
     )

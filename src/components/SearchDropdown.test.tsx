@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { getProducts } from "../features/products/api/productsApi";
 import type { Product } from "../features/products/model/product";
-import { SearchDropdown } from "./SearchDropdowwn";
+import { SearchDropdown } from "./SearchDropdown";
 
 vi.mock("../features/products/api/productsApi", () => ({
   getProducts: vi.fn(),
