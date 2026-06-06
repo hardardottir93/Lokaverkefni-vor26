@@ -14,12 +14,11 @@ export function ProductCard({ product, variant = null }: ProductCardProps) {
   const hasVariants = (product.product_variants?.length ?? 0) > 0;
   const isVariantCard = Boolean(variant);
 
-  const variantName = variant?.color_name ?? variant?.size ?? variant?.name;
+  const variantName = variant?.size ?? variant?.color_name ?? variant?.name;
 
   const displayName = variantName
     ? `${product.name} - ${variantName}`
     : product.name;
-
   const productImageUrl =
     variant?.image_url ??
     product.image_url ??

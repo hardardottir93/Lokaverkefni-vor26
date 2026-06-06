@@ -233,6 +233,16 @@ Linkur á síðuna á Railway:
 Live demo: https://lokaverkefni-vor26-production.up.railway.app/
 ```
 
+## Myndir
+
+Vörumyndir og innblástur fyrir hluta af prjónavörum eru fengin af:
+
+- https://jysk.is
+
+Aðrar myndir eru fengnar af:
+
+- https://www.pexels.com
+
 ## Höfundur
 
 Hafrún Harðardóttir
