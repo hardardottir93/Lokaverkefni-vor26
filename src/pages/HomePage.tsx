@@ -24,7 +24,7 @@ export function HomePage() {
 
   return (
     <main>
-      <section className="relative min-h-85 overflow-hidden bg-stone-100">
+      <section className="relative min-h-[620px] overflow-hidden bg-stone-100">
         <div className="absolute inset-0">
           <img
             src="/images/yarn.jpg"
@@ -34,7 +34,7 @@ export function HomePage() {
           <div className="absolute inset-0 bg-black/30" />
         </div>
 
-        <div className="relative mx-auto flex min-h-85 max-w-6xl items-center px-4 py-12">
+        <div className="relative mx-auto flex min-h-[620px] max-w-6xl items-center px-4 py-16">
           <div className="max-w-xl text-white">
             <p className="mb-4 text-sm font-medium uppercase tracking-[0.35em]">
               Garn · Prjónar · Uppskriftir
