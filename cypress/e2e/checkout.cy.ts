@@ -46,7 +46,7 @@ describe("Checkout", () => {
 
     cy.url({ timeout: 10000 }).should("include", "/cart");
 
-    cy.contains("ZING sokkaprjónar", { timeout: 15000 }).should("be.visible");
+    cy.contains("Karfan er tóm", { timeout: 1000 }).should("not.exist");
 
     cy.contains(
       "button, a",
@@ -59,34 +59,58 @@ describe("Checkout", () => {
     cy.url({ timeout: 15000 }).should("include", "/checkout");
 
     cy.contains("Greiðsla", { timeout: 15000 }).should("be.visible");
+    cy.contains("Afhendingarupplýsingar", { timeout: 15000 }).should(
+      "be.visible",
+    );
     cy.contains("Karfan er tóm", { timeout: 1000 }).should("not.exist");
 
-    cy.get('input[name="fullName"]', { timeout: 15000 })
+    cy.contains("label", "Nafn")
+      .find("input")
       .should("be.visible")
       .clear()
       .type("Test User");
 
-    cy.get('input[name="address"]', { timeout: 10000 })
+    cy.contains("label", "Heimilisfang")
+      .find("input")
       .should("be.visible")
       .clear()
       .type("Prufugata 1");
 
-    cy.get('input[name="postalCode"]', { timeout: 10000 })
+    cy.contains("label", "Póstnúmer")
+      .find("input")
       .should("be.visible")
       .clear()
       .type("101");
 
-    cy.get('input[name="city"]', { timeout: 10000 })
+    cy.contains("label", "Bær")
+      .find("input")
       .should("be.visible")
       .clear()
       .type("Reykjavík");
 
-    cy.get("input:visible", { timeout: 10000 }).then(($inputs) => {
-      cy.wrap($inputs.eq(4)).clear().type("Test notandi");
-      cy.wrap($inputs.eq(5)).clear().type("4242424242424242");
-      cy.wrap($inputs.eq(6)).clear().type("1230");
-      cy.wrap($inputs.eq(7)).clear().type("123");
-    });
+    cy.contains("label", "Nafn á korti")
+      .find("input")
+      .should("be.visible")
+      .clear()
+      .type("Test notandi");
+
+    cy.contains("label", "Kortanúmer")
+      .find("input")
+      .should("be.visible")
+      .clear()
+      .type("4242424242424242");
+
+    cy.contains("label", "Gildistími")
+      .find("input")
+      .should("be.visible")
+      .clear()
+      .type("1230");
+
+    cy.contains("label", "CVC")
+      .find("input")
+      .should("be.visible")
+      .clear()
+      .type("123");
 
     cy.contains("button", "Staðfesta gervigreiðslu", {
       timeout: 15000,

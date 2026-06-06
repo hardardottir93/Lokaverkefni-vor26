@@ -56,12 +56,14 @@ http://localhost:5173
 
 Búa þarf til tvær skrár í rót verkefnisins.
 
-```.env
+```
+.env
 VITE_SUPABASE_URL=***
 VITE_SUPABASE_PUBLISHABLE_KEY=***
 ```
 
-```cypress.env.json
+```
+cypress.env.json
 {
   "TEST_EMAIL": "***",
   "TEST_PASSWORD": "***"
@@ -191,6 +193,8 @@ Einnig er hægt að opna Cypress viðmótið með:
 ```bash
 npm run cy:open
 ```
+
+ATH. það þarf að keyra "npm run dev" áður en Cypress test eru keyrð.
 
 Testin ná meðal annars yfir:
 
