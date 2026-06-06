@@ -5,6 +5,7 @@ import { syncUserCart } from "../features/cart/api/cartSyncApi";
 import { useCartStore } from "../features/cart/store/cartStore";
 import { useProduct } from "../features/products/hooks/useProduct";
 import type { ProductVariant } from "../features/products/model/product";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -17,6 +18,8 @@ export function ProductDetailPage() {
   const [cartMessage, setCartMessage] = useState("");
 
   const addToCart = useCartStore((state) => state.addToCart);
+
+  const queryClient = useQueryClient();
 
   const variants = useMemo(
     () => product?.product_variants ?? [],
@@ -77,14 +80,15 @@ export function ProductDetailPage() {
       return;
     }
 
-    addToCart(product, quantity, selectedVariant);
-
     if (!isLoggedIn || !user) {
+      addToCart(product, quantity, selectedVariant);
+
       setCartMessage(
         selectedVariant
           ? `${selectedVariant.name} var bætt í körfu.`
           : "Vöru var bætt í körfu.",
       );
+
       return;
     }
 
@@ -100,6 +104,10 @@ export function ProductDetailPage() {
             variant: selectedVariant,
           },
         ],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["db-cart", user.id],
       });
 
       window.dispatchEvent(new Event("cart-updated"));

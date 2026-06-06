@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { ProductDetailPage } from "./ProductDetailPage";
-import { useProduct } from "../features/products/hooks/useProduct";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCartStore } from "../features/cart/store/cartStore";
+import { useProduct } from "../features/products/hooks/useProduct";
 import type { Product } from "../features/products/model/product";
+import { ProductDetailPage } from "./ProductDetailPage";
 
 vi.mock("../features/products/hooks/useProduct", () => ({
   useProduct: vi.fn(),
@@ -28,12 +29,22 @@ const mockProduct: Product = {
 };
 
 function renderProductDetailPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
   return render(
-    <MemoryRouter initialEntries={["/products/1"]}>
-      <Routes>
-        <Route path="/products/:id" element={<ProductDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/vorur/1"]}>
+        <Routes>
+          <Route path="/vorur/:id" element={<ProductDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
@@ -98,9 +109,11 @@ describe("ProductDetailPage", () => {
     expect(screen.getByText("1")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "+" }));
+
     expect(screen.getByText("2")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "-" }));
+
     expect(screen.getByText("1")).toBeInTheDocument();
   });
 
